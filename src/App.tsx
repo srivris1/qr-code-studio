@@ -1,104 +1,123 @@
-import { useState, useRef, useCallback, useEffect } from 'react';
-import type { QRPayload, QRStyle, ValidationError, RecentQR } from './types';
-import { validatePayload, buildQRString } from './utils/validators';
-import { loadRecent, saveRecent, loadTheme, saveTheme } from './utils/storage';
-import { computeLogoCoverage } from './engines/qr-renderer';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import type { QRPayload, QRStyle, RenderInfo, VerifyResult, RecentQR } from './types';
+import { validatePayload, buildQRString, checkCapacity, byteLength } from './utils/validators';
+import { describePayload } from './utils/actions';
+import { loadRecent, saveRecent, loadTheme, saveTheme, DEFAULT_STYLE, migrateStyle } from './utils/storage';
+import { useLogoImage } from './hooks/useLogoImage';
+import { diagnose, safeStyle } from './engines/diagnostics';
 import InputPanel from './components/InputPanel';
 import CustomizationPanel from './components/CustomizationPanel';
 import QRPreview, { type QRPreviewHandle } from './components/QRPreview';
 import ScanBadge from './components/ScanBadge';
+import ActionPreview from './components/ActionPreview';
 import DownloadPanel from './components/DownloadPanel';
 import RecentCodes from './components/RecentCodes';
-import { Sun, Moon, Lock } from 'lucide-react';
+import BatchSheet from './components/BatchSheet';
+import ScanTest from './components/ScanTest';
+import { Sun, Moon, Lock, Layers, Square } from 'lucide-react';
 
-const DEFAULT_STYLE: QRStyle = {
-  size: 512,
-  fgColor: '#000000',
-  bgColor: '#ffffff',
-  dotStyle: 'square',
-  errorCorrection: 'M',
-  margin: 4,
-  gradientType: 'none',
-  gradientColor1: '#8ab48e',
-  gradientColor2: '#4a8b6e',
-  gradientAngle: 135,
-  logo: null,
-  logoSize: 18,
-  logoPadding: 8,
-  logoBorderRadius: 8,
+type View = 'single' | 'sheet';
+
+const EMPTY_RESULT: VerifyResult = {
+  status: 'idle',
+  ok: false,
+  decoded: null,
+  expected: '',
+  decodeMs: 0,
+  version: null,
+  contrastRatio: 0,
+  moduleCount: 0,
+  pixelSize: 0,
+  issues: [],
 };
 
 export default function App() {
   const [theme, setTheme] = useState<'dark' | 'light'>(loadTheme);
+  const [view, setView] = useState<View>('single');
   const [payload, setPayload] = useState<QRPayload>({ type: 'url', url: '' });
   const [style, setStyle] = useState<QRStyle>(DEFAULT_STYLE);
-  const [errors, setErrors] = useState<ValidationError[]>([]);
+  const [errors, setErrors] = useState(validatePayload(payload));
   const [activePreset, setActivePreset] = useState<string | null>('mono');
-  const [scanResult, setScanResult] = useState({ contrastRatio: 0, score: 0 });
-  const [moduleCount, setModuleCount] = useState(0);
+  const [info, setInfo] = useState<RenderInfo | null>(null);
+  const [contrast, setContrast] = useState(0);
+  const [verify, setVerify] = useState<VerifyResult>(EMPTY_RESULT);
   const [recentItems, setRecentItems] = useState<RecentQR[]>(loadRecent);
-  const [showToast, setShowToast] = useState(false);
+  const [toast, setToast] = useState<string | null>(null);
+  const [scannerOpen, setScannerOpen] = useState(false);
+
   const previewRef = useRef<QRPreviewHandle>(null);
-  const saveTimeoutRef = useRef<ReturnType<typeof setTimeout>>(null);
+  const saveTimer = useRef<ReturnType<typeof setTimeout>>(null);
+  const logoImage = useLogoImage(style.logo);
+
+  const encoded = useMemo(() => {
+    if (validatePayload(payload).length > 0) return '';
+    return buildQRString(payload);
+  }, [payload]);
+
+  const capacity = useMemo(
+    () => checkCapacity(encoded, style.errorCorrection),
+    [encoded, style.errorCorrection]
+  );
+  const qrText = capacity.ok ? encoded : '';
+
+  const action = useMemo(() => describePayload(payload, qrText), [payload, qrText]);
+
+  const diagnosis = useMemo(
+    () => diagnose(style, info, contrast, verify.status === 'idle' || verify.status === 'pending' ? null : verify),
+    [style, info, contrast, verify]
+  );
+
+  const notify = useCallback((message: string) => {
+    setToast(message);
+    setTimeout(() => setToast(null), 2400);
+  }, []);
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
     saveTheme(theme);
   }, [theme]);
 
-  const toggleTheme = useCallback(() => {
-    setTheme(prev => prev === 'dark' ? 'light' : 'dark');
-  }, []);
-
-  const qrText = validatePayload(payload).length === 0 ? buildQRString(payload) : '';
-
-  const handleScanResult = useCallback((result: { contrastRatio: number; score: number }) => {
-    setScanResult(result);
-  }, []);
-
-  const handleModulesGenerated = useCallback((count: number) => {
-    setModuleCount(count);
-  }, []);
-
-  const logoCoverage = style.logo && moduleCount > 0
-    ? computeLogoCoverage(moduleCount, style.logoSize, style.logoPadding, style.size)
-    : 0;
-
-  useEffect(() => {
-    if (!qrText) return;
-    if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
-
-    saveTimeoutRef.current = setTimeout(() => {
-      const canvas = previewRef.current?.getCanvas();
-      if (!canvas) return;
-      const dataUrl = canvas.toDataURL('image/png', 0.6);
-      const item: RecentQR = {
-        id: `${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-        payload: { ...payload },
-        style: { ...style, logo: null },
-        dataUrl,
-        createdAt: Date.now(),
-      };
-      saveRecent(item);
-      setRecentItems(loadRecent());
-    }, 2000);
-
-    return () => {
-      if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
-    };
-  }, [qrText, payload, style]);
+  useEffect(() => setErrors(validatePayload(payload)), [payload]);
 
   const handleRestore = useCallback((p: QRPayload, s: QRStyle) => {
     setPayload(p);
-    setStyle(s);
-    setErrors([]);
+    setStyle(migrateStyle(s));
     setActivePreset(null);
+    setView('single');
   }, []);
 
-  const handleCopySuccess = useCallback(() => {
-    setShowToast(true);
-    setTimeout(() => setShowToast(false), 2000);
-  }, []);
+  const handleApplySafeStyle = useCallback(() => {
+    setStyle((previous) => safeStyle(previous));
+    setActivePreset(null);
+    notify('Applied square modules, square finders, level H and a full quiet zone');
+  }, [notify]);
+
+  // Debounced history snapshot, keyed on the exact code the user is looking at.
+  useEffect(() => {
+    if (!qrText) return;
+    if (saveTimer.current) clearTimeout(saveTimer.current);
+    saveTimer.current = setTimeout(() => {
+      const canvas = previewRef.current?.getCanvas();
+      if (!canvas) return;
+      const fingerprint = `${qrText}|${style.fgColor}|${style.bgColor}|${style.dotStyle}|${style.finderShape}|${style.gradientType}|${style.errorCorrection}|${style.margin}|${style.logoSize}`;
+      const existing = loadRecent().find((item) => item.id === fingerprint);
+      const item: RecentQR = {
+        id: fingerprint,
+        payload: { ...payload },
+        style: { ...style, logo: null },
+        dataUrl: canvas.toDataURL('image/png', 0.5),
+        createdAt: existing ? existing.createdAt : Date.now(),
+      };
+      saveRecent(item);
+      setRecentItems(loadRecent());
+    }, 1400);
+
+    return () => {
+      if (saveTimer.current) clearTimeout(saveTimer.current);
+    };
+  }, [qrText, payload, style]);
+
+  const bytes = qrText ? byteLength(qrText) : 0;
 
   return (
     <>
@@ -107,48 +126,69 @@ export default function App() {
           <div className="header-logo">Q</div>
           <div>
             <h1 className="header-title">QR Studio</h1>
+            <div className="header-subtitle">verified in the browser</div>
           </div>
         </div>
+
+        <nav className="view-switch" role="tablist" aria-label="Mode">
+          <button
+            type="button"
+            role="tab"
+            aria-selected={view === 'single'}
+            className={`view-switch-btn ${view === 'single' ? 'active' : ''}`}
+            onClick={() => setView('single')}
+          >
+            <Square size={13} /> One code
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={view === 'sheet'}
+            className={`view-switch-btn ${view === 'sheet' ? 'active' : ''}`}
+            onClick={() => setView('sheet')}
+          >
+            <Layers size={13} /> Sheet
+          </button>
+        </nav>
+
         <div className="header-actions">
-          <button className="theme-toggle" onClick={toggleTheme} id="btn-theme-toggle" aria-label="Toggle theme">
+          <button type="button" className="theme-toggle" onClick={() => setTheme((t) => (t === 'dark' ? 'light' : 'dark'))} id="btn-theme-toggle" aria-label="Toggle theme">
             {theme === 'dark' ? <Sun size={15} /> : <Moon size={15} />}
           </button>
         </div>
       </header>
 
       <div className="hero-section">
-        <div className="hero-tag">QR Code Generator</div>
-        <h2 className="hero-heading">Design & generate <em>beautiful</em> QR codes</h2>
+        <div className="hero-tag">QR code generator</div>
+        <h2 className="hero-heading">
+          Codes that <em>actually scan</em>
+        </h2>
         <p className="hero-desc">
-          Choose a data type, customize the appearance, and download your QR code. 
-          Everything runs in your browser — no data is sent to any server.
+          Every code is decoded back out of its own pixels before you can download it, so you find out
+          about a bad code here instead of after it is printed.
         </p>
       </div>
 
       <main className="app-layout">
         <div className="col-left">
-          <div className="card">
+          <section className="card">
             <div className="card-header">
               <div className="card-step">
                 <span className="step-number">1</span>
-                <span className="step-title">Enter your data</span>
+                <span className="step-title">Choose the action</span>
               </div>
             </div>
             <div className="card-body">
-              <InputPanel
-                payload={payload}
-                onChange={setPayload}
-                errors={errors}
-                onErrorsChange={setErrors}
-              />
+              <InputPanel payload={payload} onChange={setPayload} errors={errors} onErrorsChange={setErrors} />
+              {capacity.error && <div className="ec-warning"><span>{capacity.error}</span></div>}
             </div>
-          </div>
+          </section>
 
-          <div className="card">
+          <section className="card">
             <div className="card-header">
               <div className="card-step">
                 <span className="step-number">2</span>
-                <span className="step-title">Customize design</span>
+                <span className="step-title">Style it</span>
               </div>
             </div>
             <div className="card-body">
@@ -157,66 +197,88 @@ export default function App() {
                 onChange={setStyle}
                 activePreset={activePreset}
                 onPresetChange={setActivePreset}
-                logoCoverage={logoCoverage}
+                info={info}
               />
             </div>
-          </div>
+          </section>
         </div>
 
         <div className="col-right">
-          <div className="card">
+          <section className="card">
             <div className="card-header">
               <div className="card-step">
                 <span className="step-number">3</span>
-                <span className="step-title">Preview & download</span>
+                <span className="step-title">{view === 'single' ? 'Verify & export' : 'Build a sheet'}</span>
               </div>
             </div>
             <div className="card-body">
-              <QRPreview
-                ref={previewRef}
-                qrText={qrText}
-                style={style}
-                onScanResult={handleScanResult}
-                onModulesGenerated={handleModulesGenerated}
-              />
+              {view === 'single' ? (
+                <>
+                  <QRPreview
+                    ref={previewRef}
+                    qrText={qrText}
+                    style={style}
+                    logoImage={logoImage}
+                    onContrastChange={setContrast}
+                    onInfo={setInfo}
+                    onVerified={setVerify}
+                  />
 
-              <ScanBadge
-                score={scanResult.score}
-                contrastRatio={scanResult.contrastRatio}
-                hasContent={!!qrText}
-              />
+                  <ScanBadge
+                    verify={verify}
+                    diagnosis={diagnosis}
+                    onFix={handleApplySafeStyle}
+                    onOpenScanner={() => setScannerOpen(true)}
+                  />
 
-              <DownloadPanel
-                canvasRef={previewRef}
-                qrText={qrText}
-                style={style}
-                hasContent={!!qrText}
-                onCopySuccess={handleCopySuccess}
-              />
+                  <div className="section-title">When someone scans it</div>
+                  <ActionPreview action={action} />
 
-              <div className="privacy-note">
-                <Lock size={12} />
-                All processing happens in your browser. No data leaves your device.
-              </div>
+                  <DownloadPanel
+                    previewRef={previewRef}
+                    qrText={qrText}
+                    style={style}
+                    hasContent={!!qrText}
+                    verified={verify.status === 'pass'}
+                    onNotice={notify}
+                  />
+
+                  {info && (
+                    <div className="preview-meta">
+                      <span>
+                        {info.pixelSize}×{info.pixelSize}px
+                      </span>
+                      <span>
+                        {info.moduleCount}×{info.moduleCount} modules · v{info.version} · {bytes}B
+                      </span>
+                    </div>
+                  )}
+
+                  <div className="privacy-note">
+                    <Lock size={12} />
+                    Rendering, verification and export all run in this tab. Nothing is uploaded.
+                  </div>
+                </>
+              ) : (
+                <BatchSheet payload={payload} encoded={encoded} style={style} logoImage={logoImage} />
+              )}
             </div>
-          </div>
+          </section>
         </div>
       </main>
 
-      <RecentCodes
-        items={recentItems}
-        onRestore={handleRestore}
-        onRefresh={() => setRecentItems(loadRecent())}
-      />
+      <RecentCodes items={recentItems} onRestore={handleRestore} onRefresh={() => setRecentItems(loadRecent())} />
 
       <footer className="site-footer">
-        <span>Built with React, TypeScript & Canvas API</span>
-        <span className="footer-tech">v1.0.0</span>
+        <span>Built with React, TypeScript, Canvas and a real QR decoder</span>
+        <span className="footer-tech">v2.0</span>
       </footer>
 
-      <div className={`copy-toast ${showToast ? 'show' : ''}`}>
-        ✓ Copied to clipboard
-      </div>
+      <div className={`copy-toast ${toast ? 'show' : ''}`}>{toast}</div>
+
+      {scannerOpen && (
+        <ScanTest expected={qrText} onClose={() => setScannerOpen(false)} />
+      )}
     </>
   );
 }
