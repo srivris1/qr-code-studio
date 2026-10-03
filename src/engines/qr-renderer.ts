@@ -22,13 +22,6 @@ export function generateMatrix(text: string, errorCorrection: string): QRMatrix 
   return { modules, size };
 }
 
-function isFinderModule(row: number, col: number, moduleCount: number): boolean {
-  if (row < 7 && col < 7) return true;
-  if (row < 7 && col >= moduleCount - 7) return true;
-  if (row >= moduleCount - 7 && col < 7) return true;
-  return false;
-}
-
 function drawDot(
   ctx: CanvasRenderingContext2D,
   x: number,
@@ -39,19 +32,13 @@ function drawDot(
   switch (style) {
     case 'circle':
       ctx.beginPath();
-      ctx.arc(x + cellSize / 2, y + cellSize / 2, cellSize * 0.42, 0, Math.PI * 2);
+      ctx.arc(x + cellSize / 2, y + cellSize / 2, cellSize * 0.45, 0, Math.PI * 2);
       ctx.fill();
       break;
 
     case 'rounded':
       ctx.beginPath();
-      ctx.roundRect(
-        x + cellSize * 0.05,
-        y + cellSize * 0.05,
-        cellSize * 0.9,
-        cellSize * 0.9,
-        cellSize * 0.3
-      );
+      ctx.roundRect(x + cellSize * 0.05, y + cellSize * 0.05, cellSize * 0.9, cellSize * 0.9, cellSize * 0.3);
       ctx.fill();
       break;
 
@@ -93,31 +80,6 @@ function drawDot(
     default:
       ctx.fillRect(x, y, cellSize, cellSize);
   }
-}
-
-function drawFinderPattern(
-  ctx: CanvasRenderingContext2D,
-  startX: number,
-  startY: number,
-  cellSize: number,
-  fgColor: string,
-  bgColor: string
-): void {
-  const s = cellSize;
-  ctx.fillStyle = fgColor;
-  ctx.beginPath();
-  ctx.roundRect(startX, startY, s * 7, s * 7, s * 0.8);
-  ctx.fill();
-
-  ctx.fillStyle = bgColor;
-  ctx.beginPath();
-  ctx.roundRect(startX + s, startY + s, s * 5, s * 5, s * 0.5);
-  ctx.fill();
-
-  ctx.fillStyle = fgColor;
-  ctx.beginPath();
-  ctx.roundRect(startX + s * 2, startY + s * 2, s * 3, s * 3, s * 0.3);
-  ctx.fill();
 }
 
 function createGradient(
@@ -186,24 +148,11 @@ export function renderQR(
   for (let row = 0; row < moduleCount; row++) {
     for (let col = 0; col < moduleCount; col++) {
       if (!modules[row][col]) continue;
-      if (isFinderModule(row, col, moduleCount)) continue;
 
       const x = (col + style.margin) * cellSize;
       const y = (row + style.margin) * cellSize;
       drawDot(ctx, x, y, cellSize, style.dotStyle);
     }
-  }
-
-  const finderPositions = [
-    [0, 0],
-    [0, moduleCount - 7],
-    [moduleCount - 7, 0],
-  ];
-  const fgBase = style.gradientType !== 'none' ? style.gradientColor1 : style.fgColor;
-  for (const [fr, fc] of finderPositions) {
-    const fx = (fc + style.margin) * cellSize;
-    const fy = (fr + style.margin) * cellSize;
-    drawFinderPattern(ctx, fx, fy, cellSize, fgBase, style.bgColor);
   }
 
   if (style.logo) {
@@ -261,10 +210,7 @@ export function computeContrastRatio(fg: string, bg: string): number {
 function hexToRgb(hex: string): number[] {
   hex = hex.replace('#', '');
   if (hex.length === 3) {
-    hex = hex
-      .split('')
-      .map((c) => c + c)
-      .join('');
+    hex = hex.split('').map((c) => c + c).join('');
   }
   return [
     parseInt(hex.substring(0, 2), 16),

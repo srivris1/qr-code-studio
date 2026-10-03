@@ -9,18 +9,18 @@ import QRPreview, { type QRPreviewHandle } from './components/QRPreview';
 import ScanBadge from './components/ScanBadge';
 import DownloadPanel from './components/DownloadPanel';
 import RecentCodes from './components/RecentCodes';
-import { Sun, Moon } from 'lucide-react';
+import { Sun, Moon, Lock } from 'lucide-react';
 
 const DEFAULT_STYLE: QRStyle = {
   size: 512,
-  fgColor: '#c0c0c8',
-  bgColor: '#0a0a10',
-  dotStyle: 'rounded',
+  fgColor: '#000000',
+  bgColor: '#ffffff',
+  dotStyle: 'square',
   errorCorrection: 'M',
   margin: 4,
   gradientType: 'none',
-  gradientColor1: '#818cf8',
-  gradientColor2: '#22d3ee',
+  gradientColor1: '#8ab48e',
+  gradientColor2: '#4a8b6e',
   gradientAngle: 135,
   logo: null,
   logoSize: 18,
@@ -33,7 +33,7 @@ export default function App() {
   const [payload, setPayload] = useState<QRPayload>({ type: 'url', url: '' });
   const [style, setStyle] = useState<QRStyle>(DEFAULT_STYLE);
   const [errors, setErrors] = useState<ValidationError[]>([]);
-  const [activePreset, setActivePreset] = useState<string | null>('midnight');
+  const [activePreset, setActivePreset] = useState<string | null>('mono');
   const [scanResult, setScanResult] = useState({ contrastRatio: 0, score: 0 });
   const [moduleCount, setModuleCount] = useState(0);
   const [recentItems, setRecentItems] = useState<RecentQR[]>(loadRecent);
@@ -106,58 +106,101 @@ export default function App() {
         <div className="header-brand">
           <div className="header-logo">Q</div>
           <div>
-            <h1 className="header-title">Pro QR Studio</h1>
-            <p className="header-subtitle">Generate & Design Beautiful QR Codes</p>
+            <h1 className="header-title">QR Studio</h1>
           </div>
         </div>
         <div className="header-actions">
           <button className="theme-toggle" onClick={toggleTheme} id="btn-theme-toggle" aria-label="Toggle theme">
-            {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
+            {theme === 'dark' ? <Sun size={15} /> : <Moon size={15} />}
           </button>
         </div>
       </header>
 
+      <div className="hero-section">
+        <div className="hero-tag">QR Code Generator</div>
+        <h2 className="hero-heading">Design & generate <em>beautiful</em> QR codes</h2>
+        <p className="hero-desc">
+          Choose a data type, customize the appearance, and download your QR code. 
+          Everything runs in your browser — no data is sent to any server.
+        </p>
+      </div>
+
       <main className="app-layout">
-        <aside className="panel panel-left">
-          <InputPanel
-            payload={payload}
-            onChange={setPayload}
-            errors={errors}
-            onErrorsChange={setErrors}
-          />
-        </aside>
+        <div className="col-left">
+          <div className="card">
+            <div className="card-header">
+              <div className="card-step">
+                <span className="step-number">1</span>
+                <span className="step-title">Enter your data</span>
+              </div>
+            </div>
+            <div className="card-body">
+              <InputPanel
+                payload={payload}
+                onChange={setPayload}
+                errors={errors}
+                onErrorsChange={setErrors}
+              />
+            </div>
+          </div>
 
-        <section className="panel panel-center">
-          <QRPreview
-            ref={previewRef}
-            qrText={qrText}
-            style={style}
-            onScanResult={handleScanResult}
-            onModulesGenerated={handleModulesGenerated}
-          />
-          <ScanBadge
-            score={scanResult.score}
-            contrastRatio={scanResult.contrastRatio}
-            hasContent={!!qrText}
-          />
-          <DownloadPanel
-            canvasRef={previewRef}
-            qrText={qrText}
-            style={style}
-            hasContent={!!qrText}
-            onCopySuccess={handleCopySuccess}
-          />
-        </section>
+          <div className="card">
+            <div className="card-header">
+              <div className="card-step">
+                <span className="step-number">2</span>
+                <span className="step-title">Customize design</span>
+              </div>
+            </div>
+            <div className="card-body">
+              <CustomizationPanel
+                style={style}
+                onChange={setStyle}
+                activePreset={activePreset}
+                onPresetChange={setActivePreset}
+                logoCoverage={logoCoverage}
+              />
+            </div>
+          </div>
+        </div>
 
-        <aside className="panel panel-right">
-          <CustomizationPanel
-            style={style}
-            onChange={setStyle}
-            activePreset={activePreset}
-            onPresetChange={setActivePreset}
-            logoCoverage={logoCoverage}
-          />
-        </aside>
+        <div className="col-right">
+          <div className="card">
+            <div className="card-header">
+              <div className="card-step">
+                <span className="step-number">3</span>
+                <span className="step-title">Preview & download</span>
+              </div>
+            </div>
+            <div className="card-body">
+              <QRPreview
+                ref={previewRef}
+                qrText={qrText}
+                style={style}
+                onScanResult={handleScanResult}
+                onModulesGenerated={handleModulesGenerated}
+              />
+
+              <ScanBadge
+                score={scanResult.score}
+                contrastRatio={scanResult.contrastRatio}
+                hasContent={!!qrText}
+              />
+
+              <DownloadPanel
+                canvasRef={previewRef}
+                qrText={qrText}
+                style={style}
+                hasContent={!!qrText}
+                onCopySuccess={handleCopySuccess}
+              />
+
+              <div className="privacy-note">
+                <Lock size={12} />
+                All processing happens in your browser. No data leaves your device.
+              </div>
+            </div>
+          </div>
+        </div>
       </main>
 
       <RecentCodes
@@ -165,6 +208,11 @@ export default function App() {
         onRestore={handleRestore}
         onRefresh={() => setRecentItems(loadRecent())}
       />
+
+      <footer className="site-footer">
+        <span>Built with React, TypeScript & Canvas API</span>
+        <span className="footer-tech">v1.0.0</span>
+      </footer>
 
       <div className={`copy-toast ${showToast ? 'show' : ''}`}>
         ✓ Copied to clipboard

@@ -35,28 +35,30 @@ export default function RecentCodes({ items, onRestore, onRefresh }: Props) {
 
   return (
     <div className="recent-section">
-      <div className="recent-header">
-        <div className="recent-title">
-          <Clock size={14} />
-          Recent QR Codes
-          <span className="recent-count">{items.length}</span>
-        </div>
-        <button className="recent-clear-btn" onClick={handleClearAll}>
-          <Trash2 size={12} style={{ marginRight: 4, verticalAlign: 'middle' }} />
-          Clear All
-        </button>
-      </div>
-      <div className="recent-scroll">
-        {items.map(item => (
-          <div key={item.id} className="recent-card" onClick={() => onRestore(item.payload, item.style)}>
-            <img src={item.dataUrl} alt="QR Code" loading="lazy" />
-            <div className="recent-card-type">{item.payload.type}</div>
-            <div className="recent-card-time">{formatTime(item.createdAt)}</div>
-            <button className="recent-card-delete" onClick={e => handleDelete(item.id, e)}>
-              <X size={10} />
-            </button>
+      <div className="recent-card-outer">
+        <div className="recent-header">
+          <div className="recent-title">
+            <Clock size={13} />
+            Recent codes
+            <span className="recent-count">{items.length}</span>
           </div>
-        ))}
+          <button className="recent-clear-btn" onClick={handleClearAll}>
+            <Trash2 size={11} style={{ marginRight: 3, verticalAlign: 'middle' }} />
+            Clear
+          </button>
+        </div>
+        <div className="recent-scroll">
+          {items.map(item => (
+            <div key={item.id} className="recent-card" onClick={() => onRestore(item.payload, item.style)}>
+              <img src={item.dataUrl} alt="QR Code" loading="lazy" />
+              <div className="recent-card-type">{item.payload.type}</div>
+              <div className="recent-card-time">{formatTime(item.createdAt)}</div>
+              <button className="recent-card-delete" onClick={e => handleDelete(item.id, e)}>
+                <X size={9} />
+              </button>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
