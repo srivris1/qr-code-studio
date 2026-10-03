@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useCallback } from 'react';
 import type { QRPayload, QRType, ValidationError } from '../types';
 import { validatePayload } from '../utils/validators';
 import { Link2, Type, Mail, Phone, Wifi } from 'lucide-react';
@@ -20,13 +20,13 @@ const TYPES: { type: QRType; label: string; icon: typeof Link2 }[] = [
 
 export default function InputPanel({ payload, onChange, errors, onErrorsChange }: Props) {
   const switchType = useCallback((type: QRType) => {
-    const base: QRPayload = { type } as QRPayload;
+    const base: QRPayload = { type };
     switch (type) {
-      case 'url': (base as any).url = ''; break;
-      case 'text': (base as any).text = ''; break;
-      case 'email': (base as any).emailTo = ''; (base as any).emailSubject = ''; (base as any).emailBody = ''; break;
-      case 'phone': (base as any).phone = ''; break;
-      case 'wifi': (base as any).ssid = ''; (base as any).password = ''; (base as any).encryption = 'WPA'; (base as any).hidden = false; break;
+      case 'url': base.url = ''; break;
+      case 'text': base.text = ''; break;
+      case 'email': base.email = { to: '', subject: '', body: '' }; break;
+      case 'phone': base.phone = ''; break;
+      case 'wifi': base.wifi = { ssid: '', password: '', encryption: 'WPA', hidden: false }; break;
     }
     onChange(base);
     onErrorsChange([]);
@@ -101,19 +101,19 @@ export default function InputPanel({ payload, onChange, errors, onErrorsChange }
               className="form-input"
               type="email"
               placeholder="hello@example.com"
-              value={payload.emailTo || ''}
-              onChange={e => update({ emailTo: e.target.value })}
+              value={payload.email?.to || ''}
+              onChange={e => update({ email: { ...payload.email!, to: e.target.value, subject: payload.email?.subject || '', body: payload.email?.body || '' } })}
               id="input-email"
             />
-            {getError('emailTo') && <div className="form-error">{getError('emailTo')}</div>}
+            {getError('email.to') && <div className="form-error">{getError('email.to')}</div>}
           </div>
           <div className="form-group">
             <label className="form-label">Subject <span style={{ color: 'var(--text-dim)' }}>(optional)</span></label>
             <input
               className="form-input"
               placeholder="Email subject"
-              value={payload.emailSubject || ''}
-              onChange={e => update({ emailSubject: e.target.value })}
+              value={payload.email?.subject || ''}
+              onChange={e => update({ email: { ...payload.email!, to: payload.email?.to || '', subject: e.target.value, body: payload.email?.body || '' } })}
               id="input-email-subject"
             />
           </div>
@@ -122,8 +122,8 @@ export default function InputPanel({ payload, onChange, errors, onErrorsChange }
             <textarea
               className="form-textarea"
               placeholder="Email body text..."
-              value={payload.emailBody || ''}
-              onChange={e => update({ emailBody: e.target.value })}
+              value={payload.email?.body || ''}
+              onChange={e => update({ email: { ...payload.email!, to: payload.email?.to || '', subject: payload.email?.subject || '', body: e.target.value } })}
               id="input-email-body"
             />
           </div>
@@ -152,11 +152,11 @@ export default function InputPanel({ payload, onChange, errors, onErrorsChange }
             <input
               className="form-input"
               placeholder="MyNetwork"
-              value={payload.ssid || ''}
-              onChange={e => update({ ssid: e.target.value })}
+              value={payload.wifi?.ssid || ''}
+              onChange={e => update({ wifi: { ...payload.wifi!, ssid: e.target.value } })}
               id="input-ssid"
             />
-            {getError('ssid') && <div className="form-error">{getError('ssid')}</div>}
+            {getError('wifi.ssid') && <div className="form-error">{getError('wifi.ssid')}</div>}
           </div>
           <div className="form-group">
             <label className="form-label">Password</label>
@@ -164,8 +164,8 @@ export default function InputPanel({ payload, onChange, errors, onErrorsChange }
               className="form-input"
               type="password"
               placeholder="Network password"
-              value={payload.password || ''}
-              onChange={e => update({ password: e.target.value })}
+              value={payload.wifi?.password || ''}
+              onChange={e => update({ wifi: { ...payload.wifi!, password: e.target.value } })}
               id="input-password"
             />
           </div>
@@ -173,8 +173,8 @@ export default function InputPanel({ payload, onChange, errors, onErrorsChange }
             <label className="form-label">Encryption</label>
             <select
               className="form-select"
-              value={payload.encryption || 'WPA'}
-              onChange={e => update({ encryption: e.target.value as 'WPA' | 'WEP' | 'nopass' })}
+              value={payload.wifi?.encryption || 'WPA'}
+              onChange={e => update({ wifi: { ...payload.wifi!, encryption: e.target.value as 'WPA' | 'WEP' | 'nopass' } })}
               id="input-encryption"
             >
               <option value="WPA">WPA / WPA2</option>
@@ -185,8 +185,8 @@ export default function InputPanel({ payload, onChange, errors, onErrorsChange }
           <label className="form-checkbox">
             <input
               type="checkbox"
-              checked={payload.hidden || false}
-              onChange={e => update({ hidden: e.target.checked })}
+              checked={payload.wifi?.hidden || false}
+              onChange={e => update({ wifi: { ...payload.wifi!, hidden: e.target.checked } })}
               id="input-hidden"
             />
             Hidden network

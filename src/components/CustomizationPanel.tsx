@@ -177,7 +177,7 @@ export default function CustomizationPanel({ style, onChange, activePreset, onPr
           <button
             key={ec.value}
             className={`ec-btn ${style.errorCorrection === ec.value ? 'active' : ''}`}
-            onClick={() => update({ errorCorrection: ec.value })}
+            onClick={() => update({ errorCorrection: ec.value as 'L' | 'M' | 'Q' | 'H' })}
           >
             <span className="ec-btn-label">{ec.label}</span>
             <span className="ec-btn-sub">{ec.sub}</span>
