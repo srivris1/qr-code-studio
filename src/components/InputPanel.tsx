@@ -59,6 +59,7 @@ export default function InputPanel({ payload, onChange, errors, onErrorsChange }
   const getError = (field: string) => errors.find((e) => e.field === field)?.message;
 
   const phone = normalizePhone(payload.phone || '');
+  const sms = normalizePhone(payload.sms?.number || '');
 
   return (
     <div>
@@ -215,15 +216,15 @@ export default function InputPanel({ payload, onChange, errors, onErrorsChange }
             value={payload.phone || ''}
             onChange={(e) => update({ phone: e.target.value })}
           />
-          {getError('phone') ? (
+{getError('phone') ? (
             <div className="err">! {getError('phone')}</div>
           ) : (
             phone.digits && (
               <div className="readout-line ok">
                 <Check size={11} />
                 <span>
-                  dials <code>{formatPhone(phone.e164)}</code>
-                  {!phone.hasPlus ? ' — add + and your country code to dial internationally' : ''}
+                  dials <code>{formatPhone(phone.dialable)}</code>
+                  {!phone.hasPlus ? ' — no country code, so it only dials locally' : ''}
                 </span>
               </div>
             )
@@ -244,7 +245,19 @@ export default function InputPanel({ payload, onChange, errors, onErrorsChange }
               value={payload.sms?.number || ''}
               onChange={(e) => update({ sms: { number: e.target.value, message: payload.sms?.message || '' } })}
             />
-            {getError('sms.number') && <div className="err">! {getError('sms.number')}</div>}
+            {getError('sms.number') ? (
+              <div className="err">! {getError('sms.number')}</div>
+            ) : (
+              sms.digits && (
+                <div className="readout-line ok">
+                  <Check size={11} />
+                  <span>
+                    texts <code>{formatPhone(sms.dialable)}</code>
+                    {!sms.hasPlus ? ' — no country code, so it only sends locally' : ''}
+                  </span>
+                </div>
+              )
+            )}
           </div>
           <div className="field">
             <label htmlFor="input-sms-message">

@@ -31,6 +31,7 @@ const IDLE_RESULT: VerifyResult = {
   moduleCount: 0,
   pixelSize: 0,
   issues: [],
+  error: null,
 };
 
 const QRPreview = forwardRef<QRPreviewHandle, Props>(
@@ -96,7 +97,19 @@ const QRPreview = forwardRef<QRPreviewHandle, Props>(
 
       const timer = setTimeout(() => {
         const sampled = sampleModules(canvas, info.totalModules);
-        if (!sampled) return;
+        if (!sampled) {
+          if (currentRun !== runId.current) return;
+          onVerified({
+            ...IDLE_RESULT,
+            status: 'fail',
+            expected: qrText,
+            contrastRatio: contrast,
+            moduleCount: info.moduleCount,
+            pixelSize: info.pixelSize,
+            error: 'the rendered canvas could not be read back',
+          });
+          return;
+        }
         decodePixels(sampled.data, sampled.width, sampled.height, qrText).then((response) => {
           if (currentRun !== runId.current) return;
           onVerified({
@@ -110,6 +123,7 @@ const QRPreview = forwardRef<QRPreviewHandle, Props>(
             moduleCount: info.moduleCount,
             pixelSize: info.pixelSize,
             issues: [],
+            error: response.error,
           });
         });
       }, 200);

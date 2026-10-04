@@ -69,14 +69,17 @@ export function describePayload(payload: QRPayload, encoded: string): PayloadAct
 
     case 'phone': {
       const number = encoded.replace(/^tel:/i, '');
-      const friendly = formatPhone(number);
+      // Ask about the user's input, not about the encoded string: `tel:` numbers
+      // start with `+` whenever a country code was given and never otherwise,
+      // so testing the encoded value tells you nothing.
+      const { hasPlus } = normalizePhone(payload.phone || number);
       return {
         kind: 'call',
         headline: 'Starts a phone call',
         detail: `tel:${number}`,
         href: `tel:${number}`,
-        value: friendly,
-        hint: number.startsWith('+')
+        value: formatPhone(number),
+        hint: hasPlus
           ? 'Country code included, so this dials from anywhere.'
           : 'No country code. Add + and your country code for international use.',
       };

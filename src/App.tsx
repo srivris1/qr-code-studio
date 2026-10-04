@@ -30,6 +30,7 @@ const EMPTY_RESULT: VerifyResult = {
   moduleCount: 0,
   pixelSize: 0,
   issues: [],
+  error: null,
 };
 
 const MAX_TAPE = 12;
@@ -113,13 +114,15 @@ export default function App() {
       push(`decode ok · ${verify.decodeMs}ms · v${verify.version} · payload match`, 'ok');
     } else if (verify.status === 'fail') {
       push(
-        verify.decoded
-          ? `decode mismatch → "${verify.decoded.slice(0, 40)}"`
-          : 'decode fail → no finder pattern located',
+        verify.error
+          ? `decode error · ${verify.error}`
+          : verify.decoded
+            ? `decode mismatch → "${verify.decoded.slice(0, 40)}"`
+            : 'decode fail → no finder pattern located',
         'bad'
       );
     }
-  }, [verify.status, verify.decodeMs, verify.version, verify.decoded, push]);
+  }, [verify.status, verify.decodeMs, verify.version, verify.decoded, verify.error, push]);
 
   const handleRestore = useCallback((p: QRPayload, s: QRStyle) => {
     setPayload(p);

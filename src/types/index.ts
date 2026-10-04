@@ -83,6 +83,8 @@ export interface VerifyResult {
   moduleCount: number;
   pixelSize: number;
   issues: string[];
+  /** Set when the read itself failed, so the UI can say why instead of guessing. */
+  error: string | null;
 }
 
 export interface SheetConfig {

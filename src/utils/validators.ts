@@ -56,31 +56,31 @@ export function validatePayload(payload: QRPayload): ValidationError[] {
     }
 
     case 'phone': {
-      const { digits } = normalizePhone(payload.phone || '');
+      const { digits, overflow } = normalizePhone(payload.phone || '');
       if (!digits) {
         errors.push({ field: 'phone', message: 'Phone number is required' });
-      } else if (digits.length < MIN_PHONE_DIGITS) {
-        errors.push({ field: 'phone', message: 'That number is too short' });
-      } else if (digits.length > MAX_PHONE_DIGITS) {
+      } else if (overflow) {
         errors.push({
           field: 'phone',
           message: `Numbers cannot exceed ${MAX_PHONE_DIGITS} digits (E.164 limit)`,
         });
+      } else if (digits.length < MIN_PHONE_DIGITS) {
+        errors.push({ field: 'phone', message: 'That number is too short' });
       }
       break;
     }
 
     case 'sms': {
-      const { digits } = normalizePhone(payload.sms?.number || '');
+      const { digits, overflow } = normalizePhone(payload.sms?.number || '');
       if (!digits) {
         errors.push({ field: 'sms.number', message: 'Recipient number is required' });
-      } else if (digits.length < MIN_PHONE_DIGITS) {
-        errors.push({ field: 'sms.number', message: 'That number is too short' });
-      } else if (digits.length > MAX_PHONE_DIGITS) {
+      } else if (overflow) {
         errors.push({
           field: 'sms.number',
           message: `Numbers cannot exceed ${MAX_PHONE_DIGITS} digits (E.164 limit)`,
         });
+      } else if (digits.length < MIN_PHONE_DIGITS) {
+        errors.push({ field: 'sms.number', message: 'That number is too short' });
       }
       break;
     }
@@ -100,31 +100,56 @@ export function validatePayload(payload: QRPayload): ValidationError[] {
   return errors;
 }
 
+export interface NormalizedPhone {
+  /** Every digit the user gave us, with the E.164 cap of 15 still applied. */
+  digits: string;
+  /**
+   * True when the user supplied a country code, i.e. a leading `+` or `00`.
+   * This is the difference between `tel:+919876543210` and `tel:9876543210`,
+   * and the second one is a national number, not a broken international one.
+   */
+  hasPlus: boolean;
+  /** Exactly what goes in front of the digits when encoding. */
+  dialable: string;
+  /** True when the input carried more than 15 digits. */
+  overflow: boolean;
+}
+
 /**
- * Reduces anything a human types into an E.164 dial string.
+ * Reduces anything a human types into a dial string.
  *
  * Scanners hand `tel:` straight to the dialler, and many diallers reject the
  * spaces, dashes, dots and brackets that survive a naive trim — that is what
- * made "scanned fine, then nothing happened". `00` is also rewritten to `+`.
+ * made "scanned fine, then nothing happened". `00` is rewritten to `+`.
+ *
+ * A `+` is only added when the user actually wrote one. Prefixing every number
+ * with `+` turns a 10-digit national number into a call to country code 98,
+ * which is worse than the original problem.
  */
-export function normalizePhone(input: string): { e164: string; digits: string; hasPlus: boolean } {
+export function normalizePhone(input: string): NormalizedPhone {
   const raw = (input || '').trim();
-  if (!raw) return { e164: '', digits: '', hasPlus: false };
+  if (!raw) return { digits: '', hasPlus: false, dialable: '', overflow: false };
 
   const hasPlus = raw.startsWith('+') || raw.startsWith('00');
-  let body = raw.replace(/^\+/, '').replace(/^00/, '');
-  const digits = body.replace(/\D/g, '').slice(0, MAX_PHONE_DIGITS);
+  const body = raw.replace(/^\+/, '').replace(/^00/, '');
+  const all = body.replace(/\D/g, '');
+  const digits = all.slice(0, MAX_PHONE_DIGITS);
 
-  if (!digits) return { e164: '', digits: '', hasPlus };
-  return { e164: `+${digits}`, digits, hasPlus };
+  return {
+    digits,
+    hasPlus,
+    dialable: digits && hasPlus ? `+${digits}` : digits,
+    overflow: all.length > MAX_PHONE_DIGITS,
+  };
 }
 
 /** Human-readable rendering of a normalised number, e.g. `+91 98765 43210`. */
-export function formatPhone(e164: string): string {
-  if (!e164.startsWith('+')) return e164;
-  const rest = e164.slice(1);
-  if (rest.length <= 4) return e164;
-  return `+${rest.slice(0, rest.length - 4)} ${rest.slice(-4)}`;
+export function formatPhone(dialable: string): string {
+  if (!dialable) return '';
+  const prefix = dialable.startsWith('+') ? '+' : '';
+  const rest = prefix ? dialable.slice(1) : dialable;
+  if (rest.length <= 4) return `${prefix}${rest}`;
+  return `${prefix}${rest.slice(0, rest.length - 4)} ${rest.slice(-4)}`;
 }
 
 export function buildQRString(payload: QRPayload): string {
@@ -151,16 +176,16 @@ export function buildQRString(payload: QRPayload): string {
     }
 
     case 'phone': {
-      const { e164 } = normalizePhone(payload.phone || '');
-      return e164 ? `tel:${e164}` : '';
+      const { dialable } = normalizePhone(payload.phone || '');
+      return dialable ? `tel:${dialable}` : '';
     }
 
     case 'sms': {
-      const { e164 } = normalizePhone(payload.sms?.number || '');
-      if (!e164) return '';
+      const { dialable } = normalizePhone(payload.sms?.number || '');
+      if (!dialable) return '';
       const message = payload.sms?.message || '';
       // SMSTO is the form Android and iOS camera apps both understand.
-      return message ? `SMSTO:${e164}:${message}` : `SMSTO:${e164}`;
+      return message ? `SMSTO:${dialable}:${message}` : `SMSTO:${dialable}`;
     }
 
     case 'wifi': {
@@ -228,12 +253,12 @@ export function payloadSummary(payload: QRPayload): string {
     case 'email':
       return (payload.email?.to || '').trim() || 'No recipient';
     case 'phone': {
-      const { e164 } = normalizePhone(payload.phone || '');
-      return e164 || 'No number';
+      const { dialable } = normalizePhone(payload.phone || '');
+      return dialable || 'No number';
     }
     case 'sms': {
-      const { e164 } = normalizePhone(payload.sms?.number || '');
-      return e164 || 'No number';
+      const { dialable } = normalizePhone(payload.sms?.number || '');
+      return dialable || 'No number';
     }
     case 'wifi':
       return (payload.wifi?.ssid || '').trim() || 'No network';

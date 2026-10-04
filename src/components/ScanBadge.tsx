@@ -49,11 +49,30 @@ export default function ScanBadge({ verify, diagnosis, onFix, onOpenScanner }: P
   }
 
   const passed = verify.status === 'pass';
-  const tone = passed ? 'pass' : diagnosis?.level === 'warn' ? 'warn' : 'fail';
+  // A pipeline error is not evidence about the code, so it must not be dressed
+  // up as "this will not decode".
+  const broken = verify.status === 'fail' && !!verify.error;
+  const tone = passed ? 'pass' : broken ? 'warn' : diagnosis?.level === 'warn' ? 'warn' : 'fail';
   const Icon = passed ? ShieldCheck : TriangleAlert;
-  const title = passed ? 'verified · decodes' : diagnosis?.level === 'warn' ? 'decodes, but fragile' : 'will not decode';
+  const title = passed
+    ? 'verified · decodes'
+    : broken
+      ? 'decode check did not run'
+      : diagnosis?.level === 'warn'
+        ? 'decodes, but fragile'
+        : 'will not decode';
 
-  const faults = (diagnosis?.issues ?? []).filter((issue) => !issue.startsWith('Decoded successfully'));
+  const faults = broken
+    ? [verify.error as string]
+    : (diagnosis?.issues ?? []).filter((issue) => !issue.startsWith('Decoded successfully'));
+
+  const subtitle = passed
+    ? `round-tripped through a decoder in ${verify.decodeMs}ms · v${verify.version} · ${verify.moduleCount}×${verify.moduleCount} modules · payload matched exactly`
+    : broken
+      ? 'The decoder could not be given a usable image, so this code is untested — not proven bad.'
+      : verify.decoded === null
+        ? 'no finder pattern was located in the rendered image'
+        : `decoder read "${verify.decoded.slice(0, 48)}" instead of the encoded value`;
 
   return (
     <div className={`verify ${tone}`}>
@@ -69,13 +88,7 @@ export default function ScanBadge({ verify, diagnosis, onFix, onOpenScanner }: P
             </span>
           ) : null}
         </div>
-        <div className="verify-sub">
-          {passed
-            ? `round-tripped through a decoder in ${verify.decodeMs}ms · v${verify.version} · ${verify.moduleCount}×${verify.moduleCount} modules · payload matched exactly`
-            : verify.decoded === null
-              ? 'no finder pattern was located in the rendered image'
-              : `decoder read "${verify.decoded.slice(0, 48)}" instead of the encoded value`}
-        </div>
+        <div className="verify-sub">{subtitle}</div>
 
         <div className="meter">
           {Array.from({ length: SEGMENTS }, (_, i) => (
