@@ -175,11 +175,7 @@ export default function App() {
           : 'standby';
 
   return (
-    <div className="app-shell">
-      <div className="aurora" aria-hidden="true" />
-      <div className="hud-grid" aria-hidden="true" />
-      <div className="scan-veil" aria-hidden="true" />
-
+    <>
       <header className="topbar">
         <div className="brand">
           <div className="brand-mark" aria-hidden="true">
@@ -280,97 +276,101 @@ export default function App() {
       </div>
 
       <main className="workspace">
-        <section className="panel" data-slot="01">
-          <div className="panel-head">
-            <div className="panel-step">
-              <span className="idx">01</span>
-              <h3>Action</h3>
-            </div>
-            <span className="note">what it triggers</span>
-          </div>
-          <div className="panel-body">
-            <InputPanel payload={payload} onChange={setPayload} errors={errors} onErrorsChange={setErrors} />
-            {capacity.error && (
-              <div className="alert">
-                <span>{capacity.error}</span>
+        <div className="col">
+          <section className="panel">
+            <div className="panel-head">
+              <div className="panel-step">
+                <span className="idx">01</span>
+                <h3>Action</h3>
               </div>
-            )}
-          </div>
-        </section>
-
-        <section className="panel" data-slot="02">
-          <div className="panel-head">
-            <div className="panel-step">
-              <span className="idx">02</span>
-              <h3>Appearance</h3>
+              <span className="note">what it triggers</span>
             </div>
-            <span className="note">finders stay exact</span>
-          </div>
-          <div className="panel-body">
-            <CustomizationPanel
-              style={style}
-              onChange={setStyle}
-              activePreset={activePreset}
-              onPresetChange={setActivePreset}
-              info={info}
-            />
-          </div>
-        </section>
-
-        <section className="panel" data-slot="03">
-          <div className="panel-head">
-            <div className="panel-step">
-              <span className="idx">03</span>
-              <h3>{view === 'single' ? 'Verify & export' : 'Batch sheet'}</h3>
+            <div className="panel-body">
+              <InputPanel payload={payload} onChange={setPayload} errors={errors} onErrorsChange={setErrors} />
+              {capacity.error && (
+                <div className="alert">
+                  <span>{capacity.error}</span>
+                </div>
+              )}
             </div>
-            <span className="note">{view === 'single' ? 'round-trip decode' : 'numbered run'}</span>
-          </div>
-          <div className="panel-body">
-            {view === 'single' ? (
-              <>
-                <QRPreview
-                  ref={previewRef}
-                  qrText={qrText}
-                  style={style}
-                  logoImage={logoImage}
-                  onContrastChange={setContrast}
-                  onInfo={setInfo}
-                  onVerified={setVerify}
-                />
+          </section>
 
-                <ScanBadge
-                  verify={verify}
-                  diagnosis={diagnosis}
-                  onFix={handleApplySafeStyle}
-                  onOpenScanner={() => setScannerOpen(true)}
-                />
+          <section className="panel">
+            <div className="panel-head">
+              <div className="panel-step">
+                <span className="idx">02</span>
+                <h3>Appearance</h3>
+              </div>
+              <span className="note">finders stay exact</span>
+            </div>
+            <div className="panel-body">
+              <CustomizationPanel
+                style={style}
+                onChange={setStyle}
+                activePreset={activePreset}
+                onPresetChange={setActivePreset}
+                info={info}
+              />
+            </div>
+          </section>
+        </div>
 
-                <div className="section-label">
-                  <span className="tag">03A</span> receiver
-                </div>
-                <ActionPreview action={action} />
+        <div className="col">
+          <section className="panel">
+            <div className="panel-head">
+              <div className="panel-step">
+                <span className="idx">03</span>
+                <h3>{view === 'single' ? 'Verify & export' : 'Batch sheet'}</h3>
+              </div>
+              <span className="note">{view === 'single' ? 'round-trip decode' : 'numbered run'}</span>
+            </div>
+            <div className="panel-body">
+              {view === 'single' ? (
+                <>
+                  <QRPreview
+                    ref={previewRef}
+                    qrText={qrText}
+                    style={style}
+                    logoImage={logoImage}
+                    onContrastChange={setContrast}
+                    onInfo={setInfo}
+                    onVerified={setVerify}
+                  />
 
-                <DownloadPanel
-                  previewRef={previewRef}
-                  qrText={qrText}
-                  style={style}
-                  hasContent={!!qrText}
-                  verified={verify.status === 'pass'}
-                  onNotice={notify}
-                />
+                  <ScanBadge
+                    verify={verify}
+                    diagnosis={diagnosis}
+                    onFix={handleApplySafeStyle}
+                    onOpenScanner={() => setScannerOpen(true)}
+                  />
 
-                <DecodeTape lines={tape} />
+                  <div className="section-label">
+                    <span className="tag">03A</span> receiver
+                  </div>
+                  <ActionPreview action={action} />
 
-                <div className="alert" style={{ borderColor: 'var(--line)', borderLeftColor: 'var(--signal)', background: 'var(--signal-glow)', color: 'var(--txt-2)' }}>
-                  <Lock size={12} />
-                  <span>Rendering, decoding and export all run in this tab. Nothing is uploaded.</span>
-                </div>
-              </>
-            ) : (
-              <BatchSheet payload={payload} encoded={encoded} style={style} logoImage={logoImage} />
-            )}
-          </div>
-        </section>
+                  <DownloadPanel
+                    previewRef={previewRef}
+                    qrText={qrText}
+                    style={style}
+                    hasContent={!!qrText}
+                    verified={verify.status === 'pass'}
+                    onNotice={notify}
+                  />
+
+                  <DecodeTape lines={tape} />
+
+                  <div className="alert" style={{ borderColor: 'var(--line)', borderLeftColor: 'var(--signal)', background: 'var(--signal-glow)', color: 'var(--txt-3)' }}>
+                    <Lock size={12} />
+                    <span>Rendering, decoding and export all run in this tab. Nothing is uploaded.</span>
+                  </div>
+                </>
+              ) : (
+                <BatchSheet payload={payload} encoded={encoded} style={style} logoImage={logoImage} />
+              )}
+            </div>
+          </section>
+        </div>
       </main>
 
       <RecentCodes items={recentItems} onRestore={handleRestore} onRefresh={() => setRecentItems(loadRecent())} />
@@ -386,6 +386,6 @@ export default function App() {
       </div>
 
       {scannerOpen && <ScanTest expected={qrText} onClose={() => setScannerOpen(false)} />}
-    </div>
+    </>
   );
 }

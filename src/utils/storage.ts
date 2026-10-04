@@ -93,8 +93,7 @@ export function loadTheme(): 'dark' | 'paper' {
   try {
     const saved = localStorage.getItem(THEME_KEY);
     if (saved === 'paper' || saved === 'dark') return saved;
-    // Obsidian holo is the intended default; the daylight plate is the alternate.
-    return 'dark';
+    return window.matchMedia('(prefers-color-scheme: light)').matches ? 'paper' : 'dark';
   } catch {
     return 'dark';
   }
