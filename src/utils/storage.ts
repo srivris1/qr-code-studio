@@ -93,10 +93,10 @@ export function loadTheme(): 'dark' | 'paper' {
   try {
     const saved = localStorage.getItem(THEME_KEY);
     if (saved === 'paper' || saved === 'dark') return saved;
-    // The zine look is the intended default; the dark plate is the alternate.
-    return 'paper';
+    // Obsidian holo is the intended default; the daylight plate is the alternate.
+    return 'dark';
   } catch {
-    return 'paper';
+    return 'dark';
   }
 }
 
