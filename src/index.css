@@ -1,9 +1,10 @@
 /* ==========================================================================
-   QR STUDIO — ORBITAL DECODE ARRAY
-   Design language: a decoding instrument floating in deep space. Holographic
-   ion-blue light sources, receding horizon grid, drifting starfield, film
-   grain, and a scan line that walks the code like a targeting laser. Every
-   state that matters is legible as text, not as decoration.
+   QR STUDIO — WARM DAYLIGHT
+   Design language: a bench sitting in soft daylight. Warm neutral paper and
+   charcoal, a muted sage accent, sand and clay as the secondary hues. Low
+   chroma throughout — nothing glows, nothing shouts. The motion layer at the
+   bottom of this file is unchanged; only the light it casts has been
+   recalibrated to be soft rather than neon.
    ========================================================================== */
 
 *,
@@ -15,67 +16,51 @@
 }
 
 :root {
-  --void: #07080d;
-  --panel: #0c0e15;
-  --raised: #11141d;
-  --inset: #08090f;
-  --line: rgba(141, 163, 255, 0.13);
-  --line-2: rgba(141, 163, 255, 0.28);
-  --line-3: rgba(141, 163, 255, 0.06);
+  --void: #171614;
+  --panel: #1e1c1a;
+  --raised: #262320;
+  --inset: #131211;
+  --line: rgba(226, 216, 200, 0.12);
+  --line-2: rgba(226, 216, 200, 0.24);
+  --line-3: rgba(226, 216, 200, 0.055);
 
-  --txt: #d5d9e6;
-  --txt-2: #868da3;
-  --txt-3: #6b7390;
+  --txt: #eae3d9;
+  --txt-2: #a89f94;
+  --txt-3: #8b8278;
 
-  --signal: #8da3ff;
-  --signal-dim: rgba(141, 163, 255, 0.12);
-  --signal-glow: rgba(141, 163, 255, 0.07);
-  --warn: #efb45f;
-  --warn-dim: rgba(239, 180, 95, 0.12);
-  --fail: #ff7d8f;
-  --fail-dim: rgba(255, 125, 143, 0.12);
+  --signal: #a3c4a8;
+  --signal-dim: rgba(163, 196, 168, 0.14);
+  --signal-glow: rgba(163, 196, 168, 0.08);
+  --warn: #e0ac6a;
+  --warn-dim: rgba(224, 172, 106, 0.14);
+  --fail: #e08a80;
+  --fail-dim: rgba(224, 138, 128, 0.14);
 
-  /* Depth and light sources. Everything below --sky / --field / --aurora is
-     swapped per theme so the backdrop is designed, not just inverted. */
-  --deep: #0a0d1a;
-  --holo: linear-gradient(90deg, #7c8cff 0%, #5fd4ff 22%, #b98cff 46%, #ff8ad4 68%, #7c8cff 100%);
-  --holo-line: linear-gradient(90deg, rgba(124, 140, 255, 0.9), rgba(95, 212, 255, 0.7), rgba(185, 140, 255, 0.8), rgba(255, 138, 212, 0.65), rgba(124, 140, 255, 0.9));
-  --on-signal: #05070f;
-  --bloom: 0 0 14px rgba(141, 163, 255, 0.45);
-  --bloom-soft: 0 0 30px rgba(141, 163, 255, 0.16);
-  --grain: 0.05;
-  --star: rgba(206, 220, 255, 0.6);
-  --split-1: #5fd4ff;
-  --split-2: #ff8ad4;
+  /* Light sources. --sky / --field / --aurora are redefined per theme, so the
+     backdrop is composed rather than inverted. */
+  --holo: linear-gradient(90deg, #b9d3bc 0%, #d9c9a8 26%, #b9c4d6 54%, #c9b8cf 78%, #b9d3bc 100%);
+  --holo-line: linear-gradient(90deg, rgba(163, 196, 168, 0.85), rgba(217, 201, 168, 0.7), rgba(185, 196, 214, 0.75), rgba(201, 184, 207, 0.6), rgba(163, 196, 168, 0.85));
+  --on-signal: #1a1917;
+  --bloom: 0 0 10px rgba(163, 196, 168, 0.26);
+  --bloom-soft: 0 0 22px rgba(163, 196, 168, 0.1);
+  --grain: 0.035;
+  --split-1: #d9c9a8;
+  --split-2: #b9c4d6;
 
   --sky:
-    radial-gradient(ellipse 85% 55% at 50% -12%, #141d3a 0%, transparent 58%),
-    radial-gradient(ellipse 55% 42% at 6% 3%, rgba(52, 96, 205, 0.2) 0%, transparent 55%),
-    radial-gradient(ellipse 55% 42% at 94% 1%, rgba(124, 60, 195, 0.17) 0%, transparent 55%),
-    radial-gradient(ellipse 75% 52% at 50% 112%, rgba(28, 58, 120, 0.16) 0%, transparent 62%),
+    radial-gradient(ellipse 85% 55% at 50% -12%, #2b2723 0%, transparent 58%),
+    radial-gradient(ellipse 55% 42% at 6% 3%, rgba(163, 196, 168, 0.1) 0%, transparent 55%),
+    radial-gradient(ellipse 55% 42% at 94% 1%, rgba(217, 201, 168, 0.07) 0%, transparent 55%),
+    radial-gradient(ellipse 75% 52% at 50% 112%, rgba(185, 196, 214, 0.06) 0%, transparent 62%),
     var(--void);
   --field:
-    radial-gradient(1.3px 1.3px at 12% 14%, var(--star), transparent),
-    radial-gradient(1px 1px at 28% 62%, var(--star), transparent),
-    radial-gradient(1.6px 1.6px at 37% 22%, var(--star), transparent),
-    radial-gradient(1px 1px at 46% 78%, var(--star), transparent),
-    radial-gradient(1.2px 1.2px at 58% 36%, var(--star), transparent),
-    radial-gradient(1px 1px at 67% 88%, var(--star), transparent),
-    radial-gradient(1.7px 1.7px at 74% 18%, var(--star), transparent),
-    radial-gradient(1px 1px at 84% 54%, var(--star), transparent),
-    radial-gradient(1.2px 1.2px at 91% 31%, var(--star), transparent),
-    radial-gradient(1px 1px at 6% 47%, var(--star), transparent),
-    radial-gradient(1.1px 1.1px at 95% 79%, var(--star), transparent),
+    radial-gradient(circle at center, var(--line-3) 1px, transparent 1px),
     linear-gradient(var(--line-3) 1px, transparent 1px),
     linear-gradient(90deg, var(--line-3) 1px, transparent 1px);
-  --field-size:
-    100% 100%, 100% 100%, 100% 100%, 100% 100%, 100% 100%, 100% 100%,
-    100% 100%, 100% 100%, 100% 100%, 100% 100%, 100% 100%,
-    64px 64px, 64px 64px;
+  --field-size: 56px 56px, 56px 56px, 56px 56px;
   --aurora:
-    radial-gradient(ellipse 62% 34% at 22% -4%, rgba(84, 130, 255, 0.16), transparent 68%),
-    radial-gradient(ellipse 58% 30% at 78% 2%, rgba(178, 110, 255, 0.13), transparent 68%),
-    repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.11) 0 1px, transparent 1px 4px);
+    radial-gradient(ellipse 62% 34% at 22% -4%, rgba(163, 196, 168, 0.09), transparent 68%),
+    radial-gradient(ellipse 58% 30% at 78% 2%, rgba(217, 201, 168, 0.07), transparent 68%);
 
   --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
   --sans: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
@@ -83,55 +68,47 @@
 }
 
 [data-theme='paper'] {
-  --void: #e8e9ee;
-  --panel: #f7f8fa;
+  --void: #f6f3ee;
+  --panel: #fdfcfa;
   --raised: #ffffff;
-  --inset: #ecedf2;
-  --line: rgba(30, 41, 82, 0.14);
-  --line-2: rgba(30, 41, 82, 0.3);
-  --line-3: rgba(30, 41, 82, 0.07);
-  --txt: #0e1322;
-  --txt-2: #454d68;
-  --txt-3: #6d7590;
-  --signal: #3b4fc4;
-  --signal-dim: rgba(59, 79, 196, 0.1);
-  --signal-glow: rgba(59, 79, 196, 0.06);
-  --warn: #8f5a10;
-  --warn-dim: rgba(143, 90, 16, 0.1);
-  --fail: #bb2f49;
-  --fail-dim: rgba(187, 47, 73, 0.1);
+  --inset: #f2efea;
+  --line: rgba(64, 58, 50, 0.12);
+  --line-2: rgba(64, 58, 50, 0.24);
+  --line-3: rgba(64, 58, 50, 0.06);
+  --txt: #262320;
+  --txt-2: #5d574f;
+  --txt-3: #7d756b;
+  --signal: #55735e;
+  --signal-dim: rgba(85, 115, 94, 0.12);
+  --signal-glow: rgba(85, 115, 94, 0.07);
+  --warn: #a8712c;
+  --warn-dim: rgba(168, 113, 44, 0.12);
+  --fail: #b0483f;
+  --fail-dim: rgba(176, 72, 63, 0.12);
 
-  --deep: #f1f2f7;
-  --holo: linear-gradient(90deg, #3b4fc4 0%, #0e7490 22%, #7c3aed 46%, #be185d 68%, #3b4fc4 100%);
-  --holo-line: linear-gradient(90deg, rgba(59, 79, 196, 0.85), rgba(14, 116, 144, 0.7), rgba(124, 58, 237, 0.75), rgba(190, 24, 93, 0.6), rgba(59, 79, 196, 0.85));
-  --on-signal: #ffffff;
-  --bloom: 0 0 12px rgba(59, 79, 196, 0.28);
-  --bloom-soft: 0 0 24px rgba(59, 79, 196, 0.12);
-  --grain: 0.03;
-  --star: rgba(40, 52, 100, 0.35);
-  --split-1: #0e7490;
-  --split-2: #be185d;
+  --holo: linear-gradient(90deg, #7fa287 0%, #c2a878 26%, #8fa6bd 54%, #ab93b3 78%, #7fa287 100%);
+  --holo-line: linear-gradient(90deg, rgba(85, 115, 94, 0.8), rgba(168, 113, 44, 0.6), rgba(80, 110, 140, 0.7), rgba(140, 100, 160, 0.55), rgba(85, 115, 94, 0.8));
+  --on-signal: #241f1a;
+  --bloom: 0 0 8px rgba(85, 115, 94, 0.18);
+  --bloom-soft: 0 0 18px rgba(85, 115, 94, 0.08);
+  --grain: 0.022;
+  --split-1: #c2a878;
+  --split-2: #8fa6bd;
 
   --sky:
     radial-gradient(ellipse 85% 55% at 50% -12%, #ffffff 0%, transparent 56%),
-    radial-gradient(ellipse 55% 42% at 6% 3%, rgba(59, 79, 196, 0.09) 0%, transparent 55%),
-    radial-gradient(ellipse 55% 42% at 94% 1%, rgba(124, 58, 237, 0.08) 0%, transparent 55%),
-    radial-gradient(ellipse 75% 52% at 50% 112%, rgba(30, 58, 110, 0.07) 0%, transparent 62%),
+    radial-gradient(ellipse 55% 42% at 6% 3%, rgba(127, 162, 135, 0.07) 0%, transparent 55%),
+    radial-gradient(ellipse 55% 42% at 94% 1%, rgba(194, 168, 120, 0.06) 0%, transparent 55%),
+    radial-gradient(ellipse 75% 52% at 50% 112%, rgba(143, 166, 189, 0.05) 0%, transparent 62%),
     var(--void);
   --field:
-    radial-gradient(1.2px 1.2px at 12% 14%, var(--star), transparent),
-    radial-gradient(1px 1px at 37% 22%, var(--star), transparent),
-    radial-gradient(1.5px 1.5px at 58% 36%, var(--star), transparent),
-    radial-gradient(1px 1px at 74% 18%, var(--star), transparent),
-    radial-gradient(1px 1px at 91% 31%, var(--star), transparent),
+    radial-gradient(circle at center, var(--line-3) 1px, transparent 1px),
     linear-gradient(var(--line-3) 1px, transparent 1px),
     linear-gradient(90deg, var(--line-3) 1px, transparent 1px);
-  --field-size:
-    100% 100%, 100% 100%, 100% 100%, 100% 100%, 100% 100%,
-    56px 56px, 56px 56px;
+  --field-size: 56px 56px, 56px 56px, 56px 56px;
   --aurora:
-    radial-gradient(ellipse 62% 34% at 22% -4%, rgba(59, 79, 196, 0.08), transparent 68%),
-    radial-gradient(ellipse 58% 30% at 78% 2%, rgba(124, 58, 237, 0.07), transparent 68%);
+    radial-gradient(ellipse 62% 34% at 22% -4%, rgba(127, 162, 135, 0.07), transparent 68%),
+    radial-gradient(ellipse 58% 30% at 78% 2%, rgba(194, 168, 120, 0.06), transparent 68%);
 }
 
 html {
@@ -150,8 +127,8 @@ body {
   overflow-x: hidden;
 }
 
-/* Starfield over a receding 64px lattice. Oversized and masked so it reads as
-   depth rather than as wallpaper. */
+/* A dotted lattice at 56px, oversized and masked so it reads as depth rather
+   than as wallpaper. */
 body::before {
   content: '';
   position: fixed;
@@ -164,7 +141,7 @@ body::before {
   mask-image: linear-gradient(#000 0%, rgba(0, 0, 0, 0.5) 34%, transparent 84%);
 }
 
-/* Two slow aurora lobes plus the CRT raster. */
+/* Two slow washes of coloured light from above. */
 body::after {
   content: '';
   position: fixed;
@@ -179,7 +156,8 @@ body::after {
   z-index: 1;
 }
 
-/* Film grain, above everything so light sources feel projected. */
+/* A trace of paper grain over everything, so the light looks absorbed rather
+   than emitted. */
 #root::after {
   content: '';
   position: fixed;
@@ -191,13 +169,6 @@ body::after {
   background-size: 160px 160px;
 }
 
-#root {
-  position: relative;
-  z-index: 1;
-}
-
-/* A single low-alpha wash behind the header. Enough to read as a lit
-   instrument, not enough to tint the substrate. */
 ::selection {
   background: var(--signal);
   color: var(--on-signal);
@@ -609,7 +580,7 @@ body::after {
 .select {
   cursor: pointer;
   appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7390' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238b8278' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 10px center;
   padding-right: 28px;
@@ -1863,8 +1834,8 @@ input[type='range']::-moz-range-thumb { box-shadow: 0 0 10px var(--signal), 0 0 
   background: linear-gradient(
     100deg,
     transparent,
-    rgba(141, 163, 255, 0.16),
-    rgba(255, 138, 212, 0.11),
+    var(--signal-glow),
+    var(--signal-dim),
     transparent
   );
   transform: rotate(12deg);
@@ -1878,9 +1849,9 @@ input[type='range']::-moz-range-thumb { box-shadow: 0 0 10px var(--signal), 0 0 
   left: 0;
   right: 0;
   top: 0;
-  height: 2px;
+  height: 1px;
   background: linear-gradient(90deg, transparent, var(--signal), transparent);
-  box-shadow: 0 0 16px var(--signal);
+  box-shadow: 0 0 8px var(--signal-glow);
   pointer-events: none;
   animation: scanline 3.6s cubic-bezier(0.5, 0, 0.5, 1) infinite;
 }
