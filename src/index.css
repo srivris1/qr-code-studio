@@ -1,7 +1,8 @@
 /* ==========================================================================
-   QR STUDIO — SCAN VERIFICATION BENCH
-   Design language: instrument panel. Cool near-black substrate, hairline rules,
-   monospace readouts, square geometry, low-chroma ion-blue telemetry. Every
+   QR STUDIO — ORBITAL DECODE ARRAY
+   Design language: a decoding instrument floating in deep space. Holographic
+   ion-blue light sources, receding horizon grid, drifting starfield, film
+   grain, and a scan line that walks the code like a targeting laser. Every
    state that matters is legible as text, not as decoration.
    ========================================================================== */
 
@@ -34,6 +35,48 @@
   --fail: #ff7d8f;
   --fail-dim: rgba(255, 125, 143, 0.12);
 
+  /* Depth and light sources. Everything below --sky / --field / --aurora is
+     swapped per theme so the backdrop is designed, not just inverted. */
+  --deep: #0a0d1a;
+  --holo: linear-gradient(90deg, #7c8cff 0%, #5fd4ff 22%, #b98cff 46%, #ff8ad4 68%, #7c8cff 100%);
+  --holo-line: linear-gradient(90deg, rgba(124, 140, 255, 0.9), rgba(95, 212, 255, 0.7), rgba(185, 140, 255, 0.8), rgba(255, 138, 212, 0.65), rgba(124, 140, 255, 0.9));
+  --on-signal: #05070f;
+  --bloom: 0 0 14px rgba(141, 163, 255, 0.45);
+  --bloom-soft: 0 0 30px rgba(141, 163, 255, 0.16);
+  --grain: 0.05;
+  --star: rgba(206, 220, 255, 0.6);
+  --split-1: #5fd4ff;
+  --split-2: #ff8ad4;
+
+  --sky:
+    radial-gradient(ellipse 85% 55% at 50% -12%, #141d3a 0%, transparent 58%),
+    radial-gradient(ellipse 55% 42% at 6% 3%, rgba(52, 96, 205, 0.2) 0%, transparent 55%),
+    radial-gradient(ellipse 55% 42% at 94% 1%, rgba(124, 60, 195, 0.17) 0%, transparent 55%),
+    radial-gradient(ellipse 75% 52% at 50% 112%, rgba(28, 58, 120, 0.16) 0%, transparent 62%),
+    var(--void);
+  --field:
+    radial-gradient(1.3px 1.3px at 12% 14%, var(--star), transparent),
+    radial-gradient(1px 1px at 28% 62%, var(--star), transparent),
+    radial-gradient(1.6px 1.6px at 37% 22%, var(--star), transparent),
+    radial-gradient(1px 1px at 46% 78%, var(--star), transparent),
+    radial-gradient(1.2px 1.2px at 58% 36%, var(--star), transparent),
+    radial-gradient(1px 1px at 67% 88%, var(--star), transparent),
+    radial-gradient(1.7px 1.7px at 74% 18%, var(--star), transparent),
+    radial-gradient(1px 1px at 84% 54%, var(--star), transparent),
+    radial-gradient(1.2px 1.2px at 91% 31%, var(--star), transparent),
+    radial-gradient(1px 1px at 6% 47%, var(--star), transparent),
+    radial-gradient(1.1px 1.1px at 95% 79%, var(--star), transparent),
+    linear-gradient(var(--line-3) 1px, transparent 1px),
+    linear-gradient(90deg, var(--line-3) 1px, transparent 1px);
+  --field-size:
+    100% 100%, 100% 100%, 100% 100%, 100% 100%, 100% 100%, 100% 100%,
+    100% 100%, 100% 100%, 100% 100%, 100% 100%, 100% 100%,
+    64px 64px, 64px 64px;
+  --aurora:
+    radial-gradient(ellipse 62% 34% at 22% -4%, rgba(84, 130, 255, 0.16), transparent 68%),
+    radial-gradient(ellipse 58% 30% at 78% 2%, rgba(178, 110, 255, 0.13), transparent 68%),
+    repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.11) 0 1px, transparent 1px 4px);
+
   --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
   --sans: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
   --r: 2px;
@@ -57,6 +100,38 @@
   --warn-dim: rgba(143, 90, 16, 0.1);
   --fail: #bb2f49;
   --fail-dim: rgba(187, 47, 73, 0.1);
+
+  --deep: #f1f2f7;
+  --holo: linear-gradient(90deg, #3b4fc4 0%, #0e7490 22%, #7c3aed 46%, #be185d 68%, #3b4fc4 100%);
+  --holo-line: linear-gradient(90deg, rgba(59, 79, 196, 0.85), rgba(14, 116, 144, 0.7), rgba(124, 58, 237, 0.75), rgba(190, 24, 93, 0.6), rgba(59, 79, 196, 0.85));
+  --on-signal: #ffffff;
+  --bloom: 0 0 12px rgba(59, 79, 196, 0.28);
+  --bloom-soft: 0 0 24px rgba(59, 79, 196, 0.12);
+  --grain: 0.03;
+  --star: rgba(40, 52, 100, 0.35);
+  --split-1: #0e7490;
+  --split-2: #be185d;
+
+  --sky:
+    radial-gradient(ellipse 85% 55% at 50% -12%, #ffffff 0%, transparent 56%),
+    radial-gradient(ellipse 55% 42% at 6% 3%, rgba(59, 79, 196, 0.09) 0%, transparent 55%),
+    radial-gradient(ellipse 55% 42% at 94% 1%, rgba(124, 58, 237, 0.08) 0%, transparent 55%),
+    radial-gradient(ellipse 75% 52% at 50% 112%, rgba(30, 58, 110, 0.07) 0%, transparent 62%),
+    var(--void);
+  --field:
+    radial-gradient(1.2px 1.2px at 12% 14%, var(--star), transparent),
+    radial-gradient(1px 1px at 37% 22%, var(--star), transparent),
+    radial-gradient(1.5px 1.5px at 58% 36%, var(--star), transparent),
+    radial-gradient(1px 1px at 74% 18%, var(--star), transparent),
+    radial-gradient(1px 1px at 91% 31%, var(--star), transparent),
+    linear-gradient(var(--line-3) 1px, transparent 1px),
+    linear-gradient(90deg, var(--line-3) 1px, transparent 1px);
+  --field-size:
+    100% 100%, 100% 100%, 100% 100%, 100% 100%, 100% 100%,
+    56px 56px, 56px 56px;
+  --aurora:
+    radial-gradient(ellipse 62% 34% at 22% -4%, rgba(59, 79, 196, 0.08), transparent 68%),
+    radial-gradient(ellipse 58% 30% at 78% 2%, rgba(124, 58, 237, 0.07), transparent 68%);
 }
 
 html {
@@ -67,26 +142,53 @@ html {
 
 body {
   font-family: var(--mono);
-  background: var(--void);
+  background: var(--sky);
+  background-attachment: fixed;
   color: var(--txt);
   line-height: 1.55;
   min-height: 100vh;
   overflow-x: hidden;
 }
 
-/* Substrate grid — the whole page sits on a measured 32px lattice. */
+/* Starfield over a receding 64px lattice. Oversized and masked so it reads as
+   depth rather than as wallpaper. */
 body::before {
+  content: '';
+  position: fixed;
+  inset: -30% -12%;
+  z-index: 0;
+  pointer-events: none;
+  background-image: var(--field);
+  background-size: var(--field-size);
+  -webkit-mask-image: linear-gradient(#000 0%, rgba(0, 0, 0, 0.5) 34%, transparent 84%);
+  mask-image: linear-gradient(#000 0%, rgba(0, 0, 0, 0.5) 34%, transparent 84%);
+}
+
+/* Two slow aurora lobes plus the CRT raster. */
+body::after {
   content: '';
   position: fixed;
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  background-image:
-    linear-gradient(var(--line-3) 1px, transparent 1px),
-    linear-gradient(90deg, var(--line-3) 1px, transparent 1px);
-  background-size: 32px 32px;
-  -webkit-mask-image: radial-gradient(ellipse 120% 70% at 50% 0%, #000 0%, transparent 78%);
-  mask-image: radial-gradient(ellipse 120% 70% at 50% 0%, #000 0%, transparent 78%);
+  background-image: var(--aurora);
+}
+
+#root {
+  position: relative;
+  z-index: 1;
+}
+
+/* Film grain, above everything so light sources feel projected. */
+#root::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 400;
+  pointer-events: none;
+  opacity: var(--grain);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 160px 160px;
 }
 
 #root {
@@ -96,24 +198,15 @@ body::before {
 
 /* A single low-alpha wash behind the header. Enough to read as a lit
    instrument, not enough to tint the substrate. */
-body::after {
-  content: '';
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  background: radial-gradient(ellipse 90% 46% at 50% -12%, var(--signal-glow), transparent 70%);
-}
-
 ::selection {
   background: var(--signal);
-  color: var(--void);
+  color: var(--on-signal);
 }
 
 ::-webkit-scrollbar { width: 9px; height: 9px; }
 ::-webkit-scrollbar-track { background: var(--inset); }
 ::-webkit-scrollbar-thumb { background: var(--line-2); border-radius: 0; }
-::-webkit-scrollbar-thumb:hover { background: var(--signal); }
+::-webkit-scrollbar-thumb:hover { background: var(--signal); box-shadow: var(--bloom); }
 
 /* ------------------------------------------------------------------ topbar */
 
@@ -1482,6 +1575,392 @@ input[type='range']::-moz-range-thumb {
 }
 .toast.show { transform: translate(-50%, 0); opacity: 1; }
 
+/* ==========================================================================
+   ORBITAL SKIN — light, depth and motion
+   Layered over the base system above; no base rule is duplicated, only
+   re-skinned. Motion is garnish: the static composition is what a reader with
+   reduced-motion enabled gets, because the animation kill switch is global.
+   ========================================================================== */
+
+@keyframes holo-pan {
+  0%, 100% { background-position: 0 0, 0% 50%; }
+  50% { background-position: 0 0, 100% 50%; }
+}
+
+@keyframes holo-flow {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 200% 50%; }
+}
+
+@keyframes holo-text {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+@keyframes sweep-x {
+  0% { background-position: -45% 0; opacity: 0; }
+  10% { opacity: 0.85; }
+  90% { opacity: 0.85; }
+  100% { background-position: 145% 0; opacity: 0; }
+}
+
+@keyframes scanline {
+  0% { top: 0; opacity: 0; }
+  8% { opacity: 0.9; }
+  92% { opacity: 0.9; }
+  100% { top: 100%; opacity: 0; }
+}
+
+@keyframes sheen {
+  0% { left: -60%; opacity: 0; }
+  12% { opacity: 1; }
+  50% { left: 120%; opacity: 0; }
+  100% { left: 120%; opacity: 0; }
+}
+
+@keyframes glitch {
+  0%, 86%, 100% { text-shadow: 0 0 22px var(--signal-glow); transform: translateX(0); }
+  88% { text-shadow: -2px 0 var(--split-2), 2px 0 var(--split-1); transform: translateX(-1px); }
+  91% { text-shadow: 2px 0 var(--split-2), -2px 0 var(--split-1); transform: translateX(1px); }
+  94% { text-shadow: -1px 0 var(--split-2), 1px 0 var(--split-1); transform: translateX(0); }
+}
+
+@keyframes core-pulse {
+  0%, 100% { opacity: 0.75; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.18); }
+}
+
+@keyframes rise {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes slide-in {
+  from { opacity: 0; transform: translateX(-6px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes arc-spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes halo {
+  0% { transform: scale(0.6); opacity: 0.7; }
+  100% { transform: scale(2.4); opacity: 0; }
+}
+
+/* Motion is decoration. When it is unwelcome, none of it runs. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+/* ---- holographic edges ---------------------------------------------------- */
+
+.panel { --edge-base: var(--panel); }
+.tape { --edge-base: var(--void); }
+.inspect,
+.stage { --edge-base: var(--inset); }
+.modal,
+.toast,
+.hist { --edge-base: var(--panel); }
+
+.panel,
+.tape,
+.inspect,
+.stage,
+.modal,
+.toast,
+.hist {
+  border-color: transparent;
+  background-image: linear-gradient(var(--edge-base), var(--edge-base)), var(--holo-line);
+  background-origin: padding-box, border-box;
+  background-clip: padding-box, border-box;
+  background-size: 100% 100%, 280% 280%;
+  animation: holo-pan 9s linear infinite;
+}
+
+.toast { animation: none; }
+.modal { animation: none; }
+
+.panel {
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+.panel:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--bloom-soft);
+}
+
+.hist { transition: transform 0.14s ease, box-shadow 0.14s ease; }
+.hist:hover {
+  border-color: transparent;
+  transform: translateY(-2px);
+  box-shadow: var(--bloom);
+}
+
+/* ---- chrome --------------------------------------------------------------- */
+
+.topbar::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--signal), #ffffff, var(--signal), transparent);
+  background-size: 34% 100%;
+  background-repeat: no-repeat;
+  pointer-events: none;
+  animation: sweep-x 7s linear infinite;
+}
+
+.brand-mark::before {
+  content: '';
+  position: absolute;
+  inset: -6px;
+  border-radius: 50%;
+  background: conic-gradient(from 0deg, transparent, var(--signal), transparent 68%);
+  opacity: 0.55;
+  pointer-events: none;
+  -webkit-mask: radial-gradient(circle, transparent 58%, #000 62%);
+  mask: radial-gradient(circle, transparent 58%, #000 62%);
+  animation: arc-spin 7s linear infinite;
+}
+.brand-mark::after {
+  box-shadow: 0 0 10px var(--signal), 0 0 24px var(--signal-glow);
+  animation: core-pulse 2.8s ease-in-out infinite;
+}
+
+.brand-text h1 {
+  text-shadow: 0 0 20px var(--signal-glow);
+}
+
+.led.pass { box-shadow: var(--bloom); }
+.led.fail { box-shadow: 0 0 14px rgba(255, 125, 143, 0.4); }
+.led.busy b { position: relative; }
+.led.busy b::after {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border: 1px solid var(--warn);
+  border-radius: 50%;
+  animation: halo 1.4s ease-out infinite;
+}
+
+.view-switch button[aria-selected='true'],
+.type-btn.active,
+.seg button.active,
+.cmd.primary {
+  background-image: var(--holo);
+  background-size: 240% 100%;
+  color: var(--on-signal);
+  box-shadow: var(--bloom);
+  animation: holo-flow 5.5s linear infinite;
+}
+
+.panel-step .idx {
+  color: var(--on-signal);
+  background: var(--holo);
+  background-size: 240% 100%;
+  box-shadow: var(--bloom);
+  animation: holo-flow 6s linear infinite;
+}
+
+.panel-step .idx { animation: none; }
+
+.panel::before,
+.panel::after {
+  border-color: var(--signal);
+  box-shadow: 0 0 10px var(--signal-glow);
+  animation: core-pulse 3.4s ease-in-out infinite;
+}
+.panel::after { animation-delay: 1.7s; }
+
+/* ---- telemetry ------------------------------------------------------------ */
+
+.tcell { animation: rise 0.5s ease-out backwards; }
+.tcell:nth-child(1) { animation-delay: 0.02s; }
+.tcell:nth-child(2) { animation-delay: 0.07s; }
+.tcell:nth-child(3) { animation-delay: 0.12s; }
+.tcell:nth-child(4) { animation-delay: 0.17s; }
+.tcell:nth-child(5) { animation-delay: 0.22s; }
+.tcell:nth-child(6) { animation-delay: 0.27s; }
+.tcell:nth-child(7) { animation-delay: 0.32s; }
+.tcell:nth-child(8) { animation-delay: 0.37s; }
+
+.tcell b { text-shadow: 0 0 16px var(--signal-glow); }
+.tcell.good b { text-shadow: 0 0 14px var(--signal-glow); }
+
+/* ---- headline ------------------------------------------------------------- */
+
+.intro-kicker::before {
+  background: var(--holo-line);
+  box-shadow: 0 0 10px var(--signal-glow);
+}
+
+.intro h2 {
+  background-image: var(--holo);
+  background-size: 240% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-shadow: 0 0 26px var(--signal-glow);
+  animation: holo-text 11s linear infinite;
+}
+
+.intro h2 em {
+  color: var(--signal);
+  -webkit-text-fill-color: var(--signal);
+  animation: glitch 5.5s steps(1) infinite;
+}
+
+.intro-stat b {
+  text-shadow: 0 0 22px var(--signal-glow);
+}
+
+/* ---- form ----------------------------------------------------------------- */
+
+.input:focus,
+.select:focus,
+.textarea:focus {
+  box-shadow: 0 0 0 3px var(--signal-dim), var(--bloom-soft);
+}
+
+.icon-btn:hover,
+.cmd:hover:not(:disabled),
+.swatch.active,
+.shape-btn.active,
+.copy-btn:hover {
+  box-shadow: var(--bloom);
+}
+
+.check input { accent-color: var(--signal); }
+
+input[type='range']::-webkit-slider-thumb { box-shadow: 0 0 10px var(--signal), 0 0 22px var(--signal-glow); }
+input[type='range']::-moz-range-thumb { box-shadow: 0 0 10px var(--signal), 0 0 22px var(--signal-glow); }
+
+.drop:hover { box-shadow: var(--bloom-soft); }
+
+/* ---- stage: the targeting sweep -------------------------------------------- */
+
+.stage-inner {
+  overflow: hidden;
+  background: radial-gradient(ellipse 62% 62% at 50% 50%, var(--signal-glow), transparent 72%);
+}
+
+.stage-inner::before {
+  content: '';
+  position: absolute;
+  top: -30%;
+  left: -60%;
+  width: 42%;
+  height: 160%;
+  background: linear-gradient(
+    100deg,
+    transparent,
+    rgba(141, 163, 255, 0.16),
+    rgba(255, 138, 212, 0.11),
+    transparent
+  );
+  transform: rotate(12deg);
+  pointer-events: none;
+  animation: sheen 6.5s ease-in-out infinite;
+}
+
+.stage-inner::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--signal), transparent);
+  box-shadow: 0 0 16px var(--signal);
+  pointer-events: none;
+  animation: scanline 3.6s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+}
+
+.corner {
+  border-color: var(--signal);
+  box-shadow: 0 0 12px var(--signal-glow);
+  animation: core-pulse 2.4s ease-in-out infinite;
+}
+.corner.tr { animation-delay: 0.3s; }
+.corner.bl { animation-delay: 0.6s; }
+.corner.br { animation-delay: 0.9s; }
+
+.stage-inner canvas {
+  filter: drop-shadow(0 0 26px var(--signal-glow));
+}
+
+/* ---- verify --------------------------------------------------------------- */
+
+.verify.pass { box-shadow: var(--bloom-soft); }
+.verify.fail { box-shadow: 0 0 26px rgba(255, 125, 143, 0.14); }
+.verify.busy { box-shadow: 0 0 26px rgba(239, 180, 95, 0.12); }
+
+.verify.pass .meter i,
+.verify.warn .meter i {
+  background-image: var(--holo);
+  background-size: 320% 100%;
+  box-shadow: var(--bloom-soft);
+  animation: holo-flow 2.4s linear infinite;
+}
+
+.faults li::before {
+  box-shadow: var(--bloom);
+}
+
+/* ---- tape ----------------------------------------------------------------- */
+
+.tape-head .cursor {
+  box-shadow: 0 0 10px var(--signal);
+  animation: pulse 1.1s steps(1) infinite;
+}
+
+.tape-line { animation: slide-in 0.26s ease-out backwards; }
+.tape-line::before {
+  content: '\00b7';
+  flex-shrink: 0;
+  width: 8px;
+  text-align: center;
+  opacity: 0.7;
+}
+.tape-line.ok::before { content: '\2713'; color: var(--signal); opacity: 1; }
+.tape-line.bad::before { content: '\00d7'; color: var(--fail); opacity: 1; }
+.tape-line.warn::before { content: '!'; color: var(--warn); opacity: 1; }
+
+.inspect-head,
+.sheet-summary b,
+.hist .meta,
+.sheet-cell figcaption,
+.slider-head .val {
+  text-shadow: 0 0 14px var(--signal-glow);
+}
+
+/* ---- overlays ------------------------------------------------------------- */
+
+.modal { box-shadow: 0 0 0 1px var(--line-3), 0 30px 70px rgba(0, 0, 0, 0.6), var(--bloom-soft); }
+
+.reticle {
+  border-color: var(--signal);
+  box-shadow: 0 0 0 100vmax rgba(0, 0, 0, 0.35), inset 0 0 40px var(--signal-glow);
+  animation: core-pulse 2s ease-in-out infinite;
+}
+
+.toast {
+  animation: none;
+  box-shadow: 0 0 30px var(--signal-glow);
+  border-color: transparent;
+}
+
+.hist-x { box-shadow: 0 0 12px rgba(255, 125, 143, 0.4); }
+
 /* --------------------------------------------------------------- responsive */
 
 @media (max-width: 1080px) {
@@ -1514,6 +1993,10 @@ input[type='range']::-moz-range-thumb {
 @media print {
   body { background: #fff; }
   body::before,
+  body::after,
+  #root::after,
+  .stage-inner::before,
+  .stage-inner::after { display: none !important; }
   .topbar,
   .telemetry,
   .intro,
