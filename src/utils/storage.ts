@@ -93,9 +93,10 @@ export function loadTheme(): 'dark' | 'paper' {
   try {
     const saved = localStorage.getItem(THEME_KEY);
     if (saved === 'paper' || saved === 'dark') return saved;
-    return window.matchMedia('(prefers-color-scheme: light)').matches ? 'paper' : 'dark';
+    // The zine look is the intended default; the dark plate is the alternate.
+    return 'paper';
   } catch {
-    return 'dark';
+    return 'paper';
   }
 }
 
