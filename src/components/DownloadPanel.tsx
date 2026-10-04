@@ -2,7 +2,7 @@ import type { QRStyle } from '../types';
 import type { QRPreviewHandle } from './QRPreview';
 import { exportAsPNG, exportAtSize, exportAsSVG, copyToClipboard, copyTextToClipboard, timestamp } from '../utils/exporters';
 import { renderQRToSVG } from '../engines/qr-renderer';
-import { Download, Image, FileText, Copy, Maximize } from 'lucide-react';
+import { Download, Image, FileCode2, Maximize, Copy, Braces } from 'lucide-react';
 
 interface Props {
   previewRef: React.RefObject<QRPreviewHandle | null>;
@@ -14,73 +14,73 @@ interface Props {
 }
 
 export default function DownloadPanel({ previewRef, qrText, style, hasContent, verified, onNotice }: Props) {
-  const disabled = !hasContent;
+  const off = !hasContent;
   const name = `qr-${timestamp()}`;
 
   return (
-    <div className="download-grid">
+    <div className="cmd-grid">
       <button
         type="button"
-        className="download-btn primary"
-        disabled={disabled}
+        className="cmd primary"
+        disabled={off}
         onClick={() => {
           const canvas = previewRef.current?.getCanvas();
           if (canvas) exportAsPNG(canvas, name);
         }}
       >
-        <Download size={13} /> PNG
+        <Download size={12} /> png
       </button>
 
       <button
         type="button"
-        className="download-btn"
-        disabled={disabled}
+        className="cmd"
+        disabled={off}
         onClick={() => {
           const result = renderQRToSVG(qrText, style, style.logo);
           if (result) exportAsSVG(result.svg, name);
         }}
       >
-        <FileText size={13} /> SVG
+        <FileCode2 size={12} /> svg
       </button>
 
       <button
         type="button"
-        className="download-btn"
-        disabled={disabled}
+        className="cmd"
+        disabled={off}
         onClick={() => {
           const handle = previewRef.current;
           if (!handle) return;
-          if (!verified) onNotice('Exported anyway — the scan check has not passed.');
+          if (!verified) onNotice('exported anyway · scan check has not passed');
           exportAtSize((size) => handle.renderAt(size), `${name}-print`, 4096);
         }}
       >
-        <Maximize size={13} /> 4K print
+        <Maximize size={12} /> 4k print
       </button>
 
       <button
         type="button"
-        className="download-btn"
-        disabled={disabled}
+        className="cmd"
+        disabled={off}
         onClick={async () => {
           const canvas = previewRef.current?.getCanvas();
           if (!canvas) return;
           const ok = await copyToClipboard(canvas);
-          onNotice(ok ? 'Image copied to clipboard' : 'Clipboard blocked by the browser');
+          onNotice(ok ? 'image copied' : 'clipboard blocked by browser');
         }}
       >
-        <Image size={13} /> Copy image
+        <Image size={12} /> copy image
       </button>
 
       <button
         type="button"
-        className="download-btn wide"
-        disabled={disabled}
+        className="cmd span2"
+        disabled={off}
         onClick={async () => {
           const ok = await copyTextToClipboard(qrText);
-          onNotice(ok ? 'Payload copied — this is what a scanner reads' : 'Clipboard blocked by the browser');
+          onNotice(ok ? 'payload copied · this is what a scanner reads' : 'clipboard blocked by browser');
         }}
       >
-        <Copy size={13} /> Copy payload
+        <Braces size={12} /> copy raw payload
       </button>
     </div>
   );

@@ -7,10 +7,11 @@ interface Props {
   onClose: () => void;
 }
 
+type Mode = 'off' | 'live' | 'blocked' | 'match' | 'other';
+
 /**
- * Points the device camera at a printed code and decodes it live. This is the
- * only honest way to confirm a physical print works — a browser can verify its
- * own pixels, but not the paper, the ink, or the glare.
+ * Points the device camera at a printed code and decodes the live frame.
+ * A browser can prove its own pixels; only this proves paper, ink and glare.
  */
 export default function ScanTest({ expected, onClose }: Props) {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -19,8 +20,8 @@ export default function ScanTest({ expected, onClose }: Props) {
   const frameRef = useRef(0);
   const busyRef = useRef(false);
 
-  const [state, setState] = useState<'starting' | 'live' | 'blocked' | 'found' | 'other'>('starting');
-  const [message, setMessage] = useState('Camera is off. Nothing leaves your device.');
+  const [mode, setMode] = useState<Mode>('off');
+  const [message, setMessage] = useState('Camera is off. Frames never leave this tab.');
   const [decoded, setDecoded] = useState<string | null>(null);
 
   const stop = useCallback(() => {
@@ -30,15 +31,14 @@ export default function ScanTest({ expected, onClose }: Props) {
     streamRef.current = null;
   }, []);
 
-  // Never leave the camera indicator on if the modal goes away on its own.
   useEffect(() => stop, [stop]);
 
   const finish = useCallback(
-    (next: 'found' | 'other', text: string | null, note: string) => {
+    (next: Mode, text: string, note: string) => {
       stop();
       setDecoded(text);
       setMessage(note);
-      setState(next);
+      setMode(next);
     },
     [stop]
   );
@@ -49,35 +49,34 @@ export default function ScanTest({ expected, onClose }: Props) {
     if (!video || !canvas) return;
 
     frameRef.current = requestAnimationFrame(loop);
-
     if (video.readyState !== video.HAVE_ENOUGH_DATA || busyRef.current) return;
 
     const side = 420;
     const ctx = canvas.getContext('2d', { willReadFrequently: true })!;
     const scale = Math.min(side / video.videoWidth, side / video.videoHeight);
-    const w = Math.round(video.videoWidth * scale);
-    const h = Math.round(video.videoHeight * scale);
+    const w = Math.max(1, Math.round(video.videoWidth * scale));
+    const h = Math.max(1, Math.round(video.videoHeight * scale));
     canvas.width = w;
     canvas.height = h;
     ctx.drawImage(video, 0, 0, w, h);
 
     busyRef.current = true;
-    const image = ctx.getImageData(0, 0, w, h);
-    decodePixels(image.data, w, h, null).then((response) => {
+    const frame = ctx.getImageData(0, 0, w, h);
+    decodePixels(frame.data, w, h, null).then((response) => {
       busyRef.current = false;
       if (!response.decoded) return;
       if (response.decoded === expected) {
-        finish('found', response.decoded, 'Matches the code on screen. Your print will scan.');
+        finish('match', response.decoded, 'Payload matches. This print will scan.');
       } else {
-        finish('other', response.decoded, 'This is a different code than the one being designed.');
+        finish('other', response.decoded, 'This is a different code than the one on screen.');
       }
     });
   }, [expected, finish]);
 
   const start = useCallback(async () => {
     if (!navigator.mediaDevices?.getUserMedia) {
-      setState('blocked');
-      setMessage('This browser will not give a web page camera access.');
+      setMode('blocked');
+      setMessage('This browser will not give a page camera access.');
       return;
     }
     try {
@@ -90,71 +89,66 @@ export default function ScanTest({ expected, onClose }: Props) {
         videoRef.current.srcObject = stream;
         await videoRef.current.play();
       }
-      setState('live');
+      setMode('live');
       setMessage('Hold the printed code inside the frame.');
       frameRef.current = requestAnimationFrame(loop);
     } catch {
-      setState('blocked');
-      setMessage('Camera blocked. Allow camera access in your browser, then try again.');
+      setMode('blocked');
+      setMessage('Camera blocked. Allow access in your browser, then retry.');
     }
   }, [loop]);
 
+  const restart = () => {
+    stop();
+    setMode('off');
+    setDecoded(null);
+    setMessage('Camera is off. Frames never leave this tab.');
+    start();
+  };
+
   return (
-    <div className="modal-backdrop" role="dialog" aria-modal="true" aria-label="Camera scan test">
+    <div className="scrim" role="dialog" aria-modal="true" aria-label="Camera scan test">
       <div className="modal">
-        <div className="modal-header">
-          <h3 className="modal-title">Print test</h3>
-          <button className="modal-close" onClick={() => { stop(); onClose(); }} aria-label="Close">
-            <X size={14} />
+        <div className="modal-head">
+          <h3>print test · live decode</h3>
+          <button type="button" className="icon-btn" onClick={onClose} aria-label="Close">
+            <X size={13} />
           </button>
         </div>
 
-        <div className="scanner-view">
-          <video ref={videoRef} playsInline muted className={state === 'live' ? '' : 'hidden'} />
-          <canvas ref={canvasRef} className="hidden" />
-          {state !== 'live' && (
-            <div className="scanner-placeholder">
-              {state === 'blocked' ? <CameraOff size={28} /> : <Camera size={28} />}
-            </div>
-          )}
-          {state === 'live' && <div className="scanner-reticle" />}
-        </div>
-
-        <div className={`scanner-status ${state}`}>
-          {state === 'found' && <Check size={14} />}
-          {state === 'other' && <TriangleAlert size={14} />}
-          <span>{message}</span>
-        </div>
-
-        {decoded && (
-          <div className="scanner-decoded">
-            <code>{decoded}</code>
+        <div className="modal-body">
+          <div className="viewport">
+            <video ref={videoRef} playsInline muted className={mode === 'live' ? '' : 'off'} />
+            <canvas ref={canvasRef} style={{ display: 'none' }} />
+            {mode !== 'live' && (
+              <div className="ph">{mode === 'blocked' ? <CameraOff size={26} /> : <Camera size={26} />}</div>
+            )}
+            {mode === 'live' && <div className="reticle" />}
           </div>
-        )}
 
-        <div className="modal-actions">
-          {(state === 'starting' || state === 'blocked') && (
-            <button className="download-btn primary" onClick={start}>
-              <Camera size={13} /> Start camera
+          <div className={`status-line ${mode === 'match' ? 'ok' : mode === 'other' ? 'other' : ''}`}>
+            {mode === 'match' && <Check size={12} />}
+            {mode === 'other' && <TriangleAlert size={12} />}
+            <span>{message}</span>
+          </div>
+
+          {decoded && <div className="raw-out">{decoded}</div>}
+
+          <div className="modal-foot">
+            {(mode === 'off' || mode === 'blocked') && (
+              <button type="button" className="cmd primary" onClick={start}>
+                <Camera size={12} /> start camera
+              </button>
+            )}
+            {mode === 'match' && (
+              <button type="button" className="cmd primary" onClick={restart}>
+                scan another
+              </button>
+            )}
+            <button type="button" className="cmd" onClick={onClose}>
+              close
             </button>
-          )}
-          {state === 'found' && (
-            <button
-              className="download-btn primary"
-              onClick={() => {
-                stop();
-                setState('starting');
-                setDecoded(null);
-                setMessage('Camera is off. Nothing leaves your device.');
-                start();
-              }}
-            >
-              Scan another
-            </button>
-          )}
-          <button className="download-btn" onClick={() => { stop(); onClose(); }}>
-            Close
-          </button>
+          </div>
         </div>
       </div>
     </div>

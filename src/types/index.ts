@@ -101,3 +101,12 @@ export interface SheetItem {
   value: string;
   dataUrl: string;
 }
+
+export type TapeTone = 'dim' | 'ok' | 'warn' | 'bad';
+
+export interface TapeLine {
+  id: number;
+  at: string;
+  text: string;
+  tone: TapeTone;
+}

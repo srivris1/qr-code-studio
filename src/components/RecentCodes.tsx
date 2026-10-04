@@ -8,15 +8,13 @@ interface Props {
   onRefresh: () => void;
 }
 
-function formatTime(ts: number): string {
-  const diff = Date.now() - ts;
-  const mins = Math.floor(diff / 60000);
-  if (mins < 1) return 'Just now';
-  if (mins < 60) return `${mins}m ago`;
+function ago(ts: number): string {
+  const mins = Math.floor((Date.now() - ts) / 60000);
+  if (mins < 1) return 'now';
+  if (mins < 60) return `${mins}m`;
   const hours = Math.floor(mins / 60);
-  if (hours < 24) return `${hours}h ago`;
-  const days = Math.floor(hours / 24);
-  return `${days}d ago`;
+  if (hours < 24) return `${hours}h`;
+  return `${Math.floor(hours / 24)}d`;
 }
 
 export default function RecentCodes({ items, onRestore, onRefresh }: Props) {
@@ -28,37 +26,29 @@ export default function RecentCodes({ items, onRestore, onRefresh }: Props) {
     onRefresh();
   };
 
-  const handleClearAll = () => {
-    clearAllRecent();
-    onRefresh();
-  };
-
   return (
-    <div className="recent-section">
-      <div className="recent-card-outer">
-        <div className="recent-header">
-          <div className="recent-title">
-            <Clock size={13} />
-            Recent codes
-            <span className="recent-count">{items.length}</span>
-          </div>
-          <button className="recent-clear-btn" onClick={handleClearAll}>
-            <Trash2 size={11} style={{ marginRight: 3, verticalAlign: 'middle' }} />
-            Clear
-          </button>
-        </div>
-        <div className="recent-scroll">
-          {items.map(item => (
-            <div key={item.id} className="recent-card" onClick={() => onRestore(item.payload, item.style)}>
-              <img src={item.dataUrl} alt="QR Code" loading="lazy" />
-              <div className="recent-card-type">{item.payload.type}</div>
-              <div className="recent-card-time">{formatTime(item.createdAt)}</div>
-              <button className="recent-card-delete" onClick={e => handleDelete(item.id, e)}>
-                <X size={9} />
-              </button>
+    <div className="history">
+      <div className="history-head">
+        <h3>
+          <Clock size={11} /> history <b>{items.length}</b>
+        </h3>
+        <button type="button" className="cmd sm" onClick={() => { clearAllRecent(); onRefresh(); }}>
+          <Trash2 size={10} /> clear
+        </button>
+      </div>
+      <div className="history-scroll">
+        {items.map((item) => (
+          <div key={item.id} className="hist" onClick={() => onRestore(item.payload, item.style)}>
+            <img src={item.dataUrl} alt="Saved QR code" loading="lazy" />
+            <div className="meta">
+              <span>{item.payload.type}</span>
+              <time>{ago(item.createdAt)}</time>
             </div>
-          ))}
-        </div>
+            <button type="button" className="hist-x" onClick={(e) => handleDelete(item.id, e)} aria-label="Delete">
+              <X size={9} />
+            </button>
+          </div>
+        ))}
       </div>
     </div>
   );

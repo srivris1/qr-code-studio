@@ -12,6 +12,8 @@ interface Props {
   logoImage: HTMLImageElement | null;
 }
 
+const MAX_ITEMS = 300;
+
 export const DEFAULT_SHEET: SheetConfig = {
   count: 24,
   start: 1,
@@ -21,25 +23,58 @@ export const DEFAULT_SHEET: SheetConfig = {
   columns: 6,
 };
 
-const MAX_ITEMS = 300;
-
-function buildItems(config: SheetConfig, encoded: string, style: QRStyle, logoImage: HTMLImageElement | null): SheetItem[] {
+function buildItems(
+  config: SheetConfig,
+  encoded: string,
+  style: QRStyle,
+  logoImage: HTMLImageElement | null
+): SheetItem[] {
   const template = config.template || encoded || '{{n}}';
   const count = Math.max(1, Math.min(MAX_ITEMS, Math.floor(config.count) || 1));
-  const items: SheetItem[] = [];
   const sheetStyle: QRStyle = { ...style, size: config.codeSize, logoSize: Math.min(style.logoSize, 22) };
+  const items: SheetItem[] = [];
 
   for (let offset = 0; offset < count; offset++) {
     const index = config.start + offset;
     const label = applySheetTemplate(config.labelTemplate || `#${index}`, index, String(index));
     const value = applySheetTemplate(template, index, label);
     const canvas = document.createElement('canvas');
-    const info = renderQR(canvas, value, sheetStyle, logoImage);
-    if (!info) continue;
+    if (!renderQR(canvas, value, sheetStyle, logoImage)) continue;
     items.push({ index, label, value, dataUrl: canvas.toDataURL('image/png') });
   }
 
   return items;
+}
+
+function NumField({
+  id,
+  label,
+  value,
+  min,
+  max,
+  onChange,
+}: {
+  id: string;
+  label: string;
+  value: number;
+  min: number;
+  max?: number;
+  onChange: (v: number) => void;
+}) {
+  return (
+    <div className="field">
+      <label htmlFor={id}>{label}</label>
+      <input
+        id={id}
+        className="input"
+        type="number"
+        min={min}
+        max={max}
+        value={value}
+        onChange={(e) => onChange(Number(e.target.value))}
+      />
+    </div>
+  );
 }
 
 export default function BatchSheet({ payload, encoded, style, logoImage }: Props) {
@@ -47,16 +82,14 @@ export default function BatchSheet({ payload, encoded, style, logoImage }: Props
   const [items, setItems] = useState<SheetItem[]>([]);
   const [busy, setBusy] = useState(false);
 
-  const defaultTemplate = useMemo(() => defaultSheetTemplate(payload), [payload]);
+  const fallbackTemplate = useMemo(() => defaultSheetTemplate(payload), [payload]);
+  const patch = (next: Partial<SheetConfig>) => setConfig((previous) => ({ ...previous, ...next }));
 
-  // Keep the template in step with the payload, but never clobber an edit.
   useEffect(() => {
     setConfig((previous) =>
-      previous.template === '' || previous.template === DEFAULT_SHEET.template
-        ? { ...previous, template: defaultTemplate }
-        : previous
+      previous.template === '' ? { ...previous, template: fallbackTemplate } : previous
     );
-  }, [defaultTemplate]);
+  }, [fallbackTemplate]);
 
   useEffect(() => {
     if (!encoded.trim()) {
@@ -71,9 +104,7 @@ export default function BatchSheet({ payload, encoded, style, logoImage }: Props
     return () => clearTimeout(timer);
   }, [config, encoded, style, logoImage]);
 
-  const patch = (next: Partial<SheetConfig>) => setConfig((previous) => ({ ...previous, ...next }));
-
-  const handleDownloadSheet = async () => {
+  const handleDownloadSheet = () => {
     if (items.length === 0) return;
     const sheetStyle: QRStyle = { ...style, size: config.codeSize, logoSize: Math.min(style.logoSize, 22) };
     const canvases = items.map((item) => {
@@ -95,109 +126,70 @@ export default function BatchSheet({ payload, encoded, style, logoImage }: Props
     downloadText(rows.join('\n'), `qr-sheet-${timestamp()}.csv`, 'text/csv');
   };
 
+  const empty = items.length === 0;
+
   return (
-    <div className="sheet-section">
-      <div className="sheet-controls">
-        <div className="form-group">
-          <label className="form-label" htmlFor="sheet-template">
-            Numbering template
-          </label>
+    <div className="sheet">
+      <div className="section-label">
+        <span className="tag">03S</span> numbering template
+      </div>
+
+      <div className="sheet-fields">
+        <div className="field">
+          <label htmlFor="sheet-template">payload template</label>
           <input
             id="sheet-template"
-            className="form-input mono"
+            className="input"
             value={config.template}
-            placeholder={defaultTemplate}
+            placeholder={fallbackTemplate}
             onChange={(e) => patch({ template: e.target.value })}
+            spellCheck={false}
           />
-          <p className="field-hint">
-            <code>{'{{n}}'}</code> inserts the number, <code>{'{{label}}'}</code> the label.
+          <p className="hint">
+            <code>{'{{n}}'}</code> number · <code>{'{{label}}'}</code> label
           </p>
         </div>
 
-        <div className="form-group">
-          <label className="form-label" htmlFor="sheet-label">
-            Label template
-          </label>
+        <div className="field">
+          <label htmlFor="sheet-label">caption template</label>
           <input
             id="sheet-label"
-            className="form-input mono"
+            className="input"
             value={config.labelTemplate}
             onChange={(e) => patch({ labelTemplate: e.target.value })}
+            spellCheck={false}
           />
-        </div>
-
-        <div className="sheet-numbers">
-          <div className="form-group">
-            <label className="form-label" htmlFor="sheet-count">Codes</label>
-            <input
-              id="sheet-count"
-              className="form-input"
-              type="number"
-              min={1}
-              max={MAX_ITEMS}
-              value={config.count}
-              onChange={(e) => patch({ count: Number(e.target.value) })}
-            />
-          </div>
-          <div className="form-group">
-            <label className="form-label" htmlFor="sheet-start">Starts at</label>
-            <input
-              id="sheet-start"
-              className="form-input"
-              type="number"
-              min={0}
-              value={config.start}
-              onChange={(e) => patch({ start: Number(e.target.value) })}
-            />
-          </div>
-          <div className="form-group">
-            <label className="form-label" htmlFor="sheet-columns">Per row</label>
-            <input
-              id="sheet-columns"
-              className="form-input"
-              type="number"
-              min={1}
-              max={12}
-              value={config.columns}
-              onChange={(e) => patch({ columns: Math.max(1, Number(e.target.value) || 1) })}
-            />
-          </div>
-          <div className="form-group">
-            <label className="form-label" htmlFor="sheet-size">Code px</label>
-            <input
-              id="sheet-size"
-              className="form-input"
-              type="number"
-              min={120}
-              max={1024}
-              step={20}
-              value={config.codeSize}
-              onChange={(e) => patch({ codeSize: Number(e.target.value) })}
-            />
-          </div>
-        </div>
-
-        <div className="sheet-actions">
-          <button type="button" className="download-btn primary" disabled={!items.length} onClick={() => window.print()}>
-            <Printer size={13} /> Print sheet
-          </button>
-          <button type="button" className="download-btn" disabled={!items.length} onClick={handleDownloadSheet}>
-            <ImageIcon size={13} /> PNG
-          </button>
-          <button type="button" className="download-btn" disabled={!items.length} onClick={handleDownloadCsv}>
-            <FileSpreadsheet size={13} /> CSV
-          </button>
         </div>
       </div>
 
-      {items.length === 0 ? (
-        <div className="sheet-empty">
-          {busy ? 'Building sheet…' : 'Enter a URL or text above to generate a numbered sheet.'}
-        </div>
+      <div className="section-label">
+        <span className="tag">03T</span> run size
+      </div>
+      <div className="sheet-nums">
+        <NumField id="sheet-count" label="codes" value={config.count} min={1} max={MAX_ITEMS} onChange={(v) => patch({ count: v })} />
+        <NumField id="sheet-start" label="starts at" value={config.start} min={0} onChange={(v) => patch({ start: v })} />
+        <NumField id="sheet-columns" label="per row" value={config.columns} min={1} max={12} onChange={(v) => patch({ columns: Math.max(1, v || 1) })} />
+        <NumField id="sheet-size" label="code px" value={config.codeSize} min={120} max={1024} onChange={(v) => patch({ codeSize: v })} />
+      </div>
+
+      <div className="sheet-actions">
+        <button type="button" className="cmd primary" disabled={empty} onClick={() => window.print()}>
+          <Printer size={12} /> print
+        </button>
+        <button type="button" className="cmd" disabled={empty} onClick={handleDownloadSheet}>
+          <ImageIcon size={12} /> png
+        </button>
+        <button type="button" className="cmd" disabled={empty} onClick={handleDownloadCsv}>
+          <FileSpreadsheet size={12} /> csv
+        </button>
+      </div>
+
+      {empty ? (
+        <div className="sheet-blank">{busy ? 'building run…' : 'enter a payload to generate a numbered run'}</div>
       ) : (
         <>
           <div className="sheet-summary">
-            {items.length} codes · {items[0].label} → {items[items.length - 1].label} ·{' '}
+            <b>{items.length}</b> codes · {items[0].label} → {items[items.length - 1].label} ·{' '}
             <code>{items[0].value}</code>
           </div>
           <div className="sheet-grid" style={{ gridTemplateColumns: `repeat(${config.columns}, 1fr)` }}>

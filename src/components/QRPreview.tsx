@@ -119,16 +119,24 @@ const QRPreview = forwardRef<QRPreviewHandle, Props>(
 
     if (!qrText) {
       return (
-        <div className="qr-empty-state">
-          <QrCode size={48} className="qr-empty-icon" />
-          <div className="qr-empty-text">Enter data to generate a QR code</div>
+        <div className="stage">
+          <div className="stage-inner">
+            <div className="empty">
+              <QrCode size={34} />
+              <span>awaiting payload</span>
+            </div>
+          </div>
         </div>
       );
     }
 
     return (
-      <div className="qr-preview-container">
-        <div className="qr-canvas-wrapper">
+      <div className="stage">
+        <div className="stage-inner">
+          <span className="corner tl" />
+          <span className="corner tr" />
+          <span className="corner bl" />
+          <span className="corner br" />
           <canvas ref={canvasRef} />
         </div>
       </div>

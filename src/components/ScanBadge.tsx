@@ -1,4 +1,4 @@
-import { ShieldCheck, ShieldAlert, ShieldX, Loader2, ScanLine, Wand2 } from 'lucide-react';
+import { ShieldCheck, TriangleAlert, Loader2, ScanLine, Wrench } from 'lucide-react';
 import type { VerifyResult } from '../types';
 import type { Diagnosis } from '../engines/diagnostics';
 
@@ -9,14 +9,21 @@ interface Props {
   onOpenScanner: () => void;
 }
 
+const SEGMENTS = 22;
+
 export default function ScanBadge({ verify, diagnosis, onFix, onOpenScanner }: Props) {
   if (verify.status === 'idle') {
     return (
-      <div className="scan-badge idle">
-        <ScanLine size={18} className="scan-badge-icon" />
-        <div className="scan-badge-text">
-          <div className="scan-badge-title">Scan check</div>
-          <div className="scan-badge-detail">A decoder will read the rendered pixels before you download.</div>
+      <div className="verify idle">
+        <div className="verify-mark">
+          <ScanLine size={17} />
+        </div>
+        <div>
+          <div className="verify-title">scan check armed</div>
+          <div className="verify-sub">
+            The rendered pixels get downsampled to camera resolution and read back by a real decoder.
+            Nothing is claimed before that succeeds.
+          </div>
         </div>
       </div>
     );
@@ -24,52 +31,77 @@ export default function ScanBadge({ verify, diagnosis, onFix, onOpenScanner }: P
 
   if (verify.status === 'pending') {
     return (
-      <div className="scan-badge idle">
-        <Loader2 size={18} className="scan-badge-icon spin" />
-        <div className="scan-badge-text">
-          <div className="scan-badge-title">Reading the rendered code…</div>
-          <div className="scan-badge-detail">Sampling the pixels a scanner would actually see.</div>
+      <div className="verify busy">
+        <div className="verify-mark">
+          <Loader2 size={17} className="spin" />
+        </div>
+        <div>
+          <div className="verify-title">decoding render</div>
+          <div className="verify-sub">sampling at 14px per module · blurring like a camera</div>
+          <div className="meter">
+            {Array.from({ length: SEGMENTS }, (_, i) => (
+              <i key={i} />
+            ))}
+          </div>
         </div>
       </div>
     );
   }
 
   const passed = verify.status === 'pass';
-  const level = passed ? 'success' : diagnosis?.level === 'warn' ? 'warning' : 'danger';
-  const Icon = passed ? ShieldCheck : diagnosis?.level === 'warn' ? ShieldAlert : ShieldX;
-  const title = passed ? 'Verified — this scans' : diagnosis?.level === 'warn' ? 'Scans, but fragile' : 'This will not scan';
+  const tone = passed ? 'pass' : diagnosis?.level === 'warn' ? 'warn' : 'fail';
+  const Icon = passed ? ShieldCheck : TriangleAlert;
+  const title = passed ? 'verified · decodes' : diagnosis?.level === 'warn' ? 'decodes, but fragile' : 'will not decode';
+
+  const faults = (diagnosis?.issues ?? []).filter((issue) => !issue.startsWith('Decoded successfully'));
 
   return (
-    <div className={`scan-badge ${level}`}>
-      <Icon size={18} className="scan-badge-icon" />
-      <div className="scan-badge-text">
-        <div className="scan-badge-title">{title}</div>
-        <div className="scan-badge-detail">
-          {passed
-            ? `Round-tripped through a real decoder in ${verify.decodeMs}ms · version ${verify.version} · ${verify.moduleCount}×${verify.moduleCount} modules`
-            : verify.decoded === null
-              ? 'Nothing could be read from the rendered image.'
-              : `Decoder read “${verify.decoded.slice(0, 48)}” instead of the encoded value.`}
+    <div className={`verify ${tone}`}>
+      <div className="verify-mark">
+        <Icon size={17} />
+      </div>
+      <div>
+        <div className="verify-title">
+          {title}
+          {passed ? (
+            <span style={{ letterSpacing: '0.1em', color: 'var(--txt-3)', fontWeight: 400 }}>
+              · {verify.decodeMs}ms
+            </span>
+          ) : null}
         </div>
-        {diagnosis && diagnosis.issues.length > 0 && (
-          <ul className="scan-issues">
-            {diagnosis.issues.slice(0, 3).map((issue) => (
+        <div className="verify-sub">
+          {passed
+            ? `round-tripped through a decoder in ${verify.decodeMs}ms · v${verify.version} · ${verify.moduleCount}×${verify.moduleCount} modules · payload matched exactly`
+            : verify.decoded === null
+              ? 'no finder pattern was located in the rendered image'
+              : `decoder read "${verify.decoded.slice(0, 48)}" instead of the encoded value`}
+        </div>
+
+        <div className="meter">
+          {Array.from({ length: SEGMENTS }, (_, i) => (
+            <i key={i} />
+          ))}
+        </div>
+
+        {faults.length > 0 && (
+          <ul className="faults">
+            {faults.slice(0, 3).map((issue) => (
               <li key={issue}>{issue}</li>
             ))}
           </ul>
         )}
-        <div className="scan-badge-actions">
-          <button className="scan-badge-btn" onClick={onOpenScanner}>
-            <ScanLine size={11} /> Test with camera
+
+        <div className="verify-actions">
+          <button type="button" className="cmd sm" onClick={onOpenScanner}>
+            <ScanLine size={11} /> test with camera
           </button>
           {!passed && (
-            <button className="scan-badge-btn" onClick={onFix}>
-              <Wand2 size={11} /> Apply safe style
+            <button type="button" className="cmd sm" onClick={onFix}>
+              <Wrench size={11} /> apply safe style
             </button>
           )}
         </div>
       </div>
-      <div className={`scan-score ${passed ? 'high' : 'low'}`}>{passed ? 'PASS' : 'FAIL'}</div>
     </div>
   );
 }

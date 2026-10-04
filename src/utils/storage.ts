@@ -89,16 +89,16 @@ export function clearAllRecent(): void {
   localStorage.removeItem(STORAGE_KEY);
 }
 
-export function loadTheme(): 'dark' | 'light' {
+export function loadTheme(): 'dark' | 'paper' {
   try {
     const saved = localStorage.getItem(THEME_KEY);
-    if (saved === 'light' || saved === 'dark') return saved;
-    return window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+    if (saved === 'paper' || saved === 'dark') return saved;
+    return window.matchMedia('(prefers-color-scheme: light)').matches ? 'paper' : 'dark';
   } catch {
     return 'dark';
   }
 }
 
-export function saveTheme(theme: 'dark' | 'light'): void {
+export function saveTheme(theme: 'dark' | 'paper'): void {
   localStorage.setItem(THEME_KEY, theme);
 }

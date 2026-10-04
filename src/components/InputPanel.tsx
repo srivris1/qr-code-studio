@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
 import type { QRPayload, QRType, ValidationError } from '../types';
 import { validatePayload, normalizePhone, formatPhone } from '../utils/validators';
-import { Link2, Type, Mail, Phone, Wifi, MessageSquare, Check } from 'lucide-react';
+import { Link2, Type, Mail, Phone, Wifi, MessageSquare, Check, Info } from 'lucide-react';
 
 interface Props {
   payload: QRPayload;
@@ -12,11 +12,11 @@ interface Props {
 
 const TYPES: { type: QRType; label: string; icon: typeof Link2 }[] = [
   { type: 'url', label: 'URL', icon: Link2 },
-  { type: 'text', label: 'Text', icon: Type },
-  { type: 'email', label: 'Email', icon: Mail },
-  { type: 'phone', label: 'Call', icon: Phone },
+  { type: 'text', label: 'TEXT', icon: Type },
+  { type: 'email', label: 'MAIL', icon: Mail },
+  { type: 'phone', label: 'CALL', icon: Phone },
   { type: 'sms', label: 'SMS', icon: MessageSquare },
-  { type: 'wifi', label: 'Wi-Fi', icon: Wifi },
+  { type: 'wifi', label: 'WIFI', icon: Wifi },
 ];
 
 function emptyPayload(type: QRType): QRPayload {
@@ -59,35 +59,37 @@ export default function InputPanel({ payload, onChange, errors, onErrorsChange }
   const getError = (field: string) => errors.find((e) => e.field === field)?.message;
 
   const phone = normalizePhone(payload.phone || '');
-  const sms = normalizePhone(payload.sms?.number || '');
 
   return (
     <div>
-      <div className="section-title">What should the code do?</div>
-      <div className="type-tabs">
+      <div className="section-label">
+        <span className="tag">01A</span> payload type
+      </div>
+      <div className="type-grid">
         {TYPES.map(({ type, label, icon: Icon }) => (
           <button
             key={type}
-            className={`type-tab ${payload.type === type ? 'active' : ''}`}
+            type="button"
+            className={`type-btn ${payload.type === type ? 'active' : ''}`}
             onClick={() => switchType(type)}
             id={`tab-${type}`}
-            type="button"
           >
-            <Icon size={14} className="type-tab-icon" />
+            <Icon size={15} />
             {label}
           </button>
         ))}
       </div>
 
-      <div className="section-title">Content</div>
+      <div className="section-label">
+        <span className="tag">01B</span> payload
+      </div>
 
       {payload.type === 'url' && (
-        <div className="form-group">
-          <label className="form-label" htmlFor="input-url">
-            Web address
-          </label>
+        <div className="field">
+          <label htmlFor="input-url">Web address</label>
           <input
-            className="form-input"
+            id="input-url"
+            className="input"
             type="text"
             inputMode="url"
             autoComplete="off"
@@ -95,16 +97,18 @@ export default function InputPanel({ payload, onChange, errors, onErrorsChange }
             placeholder="example.com/pricing"
             value={payload.url || ''}
             onChange={(e) => update({ url: e.target.value })}
-            id="input-url"
           />
           {getError('url') ? (
-            <div className="form-error">{getError('url')}</div>
+            <div className="err">! {getError('url')}</div>
           ) : (
             payload.url && (
-              <div className="form-note">
-                {/^[a-z][a-z0-9+.-]*:\/\//i.test(payload.url.trim())
-                  ? payload.url.trim()
-                  : `https://${payload.url.trim()}`}
+              <div className="readout-line">
+                <Info size={11} />
+                <code>
+                  {/^[a-z][a-z0-9+.-]*:\/\//i.test(payload.url.trim())
+                    ? payload.url.trim()
+                    : `https://${payload.url.trim()}`}
+                </code>
               </div>
             )
           )}
@@ -112,97 +116,114 @@ export default function InputPanel({ payload, onChange, errors, onErrorsChange }
       )}
 
       {payload.type === 'text' && (
-        <div className="form-group">
-          <label className="form-label" htmlFor="input-text">
-            Text content
-          </label>
+        <div className="field">
+          <label htmlFor="input-text">Plain text</label>
           <textarea
-            className="form-textarea"
+            id="input-text"
+            className="textarea"
             placeholder="Type anything…"
             value={payload.text || ''}
             onChange={(e) => update({ text: e.target.value })}
-            id="input-text"
           />
-          <div className="field-footer">
-            {getError('text') && <div className="form-error">{getError('text')}</div>}
-            <span className="char-count">{(payload.text || '').length} chars</span>
+          <div className="field-foot">
+            {getError('text') && <div className="err">! {getError('text')}</div>}
+            <span className="readout-line grow" style={{ marginTop: 0 }}>
+              {(payload.text || '').length} chars
+            </span>
           </div>
         </div>
       )}
 
       {payload.type === 'email' && (
         <>
-          <div className="form-group">
-            <label className="form-label" htmlFor="input-email">
-              Recipient
-            </label>
+          <div className="field">
+            <label htmlFor="input-email">Recipient</label>
             <input
-              className="form-input"
+              id="input-email"
+              className="input"
               type="email"
               placeholder="hello@example.com"
               value={payload.email?.to || ''}
               onChange={(e) =>
-                update({ email: { ...payload.email!, to: e.target.value, subject: payload.email?.subject || '', body: payload.email?.body || '' } })
+                update({
+                  email: {
+                    ...payload.email!,
+                    to: e.target.value,
+                    subject: payload.email?.subject || '',
+                    body: payload.email?.body || '',
+                  },
+                })
               }
-              id="input-email"
             />
-            {getError('email.to') && <div className="form-error">{getError('email.to')}</div>}
+            {getError('email.to') && <div className="err">! {getError('email.to')}</div>}
           </div>
-          <div className="form-group">
-            <label className="form-label" htmlFor="input-email-subject">
-              Subject <span className="form-optional">(optional)</span>
+          <div className="field">
+            <label htmlFor="input-email-subject">
+              Subject <span className="opt">// optional</span>
             </label>
             <input
-              className="form-input"
+              id="input-email-subject"
+              className="input"
               placeholder="Subject line"
               value={payload.email?.subject || ''}
               onChange={(e) =>
-                update({ email: { ...payload.email!, to: payload.email?.to || '', subject: e.target.value, body: payload.email?.body || '' } })
+                update({
+                  email: {
+                    ...payload.email!,
+                    to: payload.email?.to || '',
+                    subject: e.target.value,
+                    body: payload.email?.body || '',
+                  },
+                })
               }
-              id="input-email-subject"
             />
           </div>
-          <div className="form-group">
-            <label className="form-label" htmlFor="input-email-body">
-              Body <span className="form-optional">(optional)</span>
+          <div className="field">
+            <label htmlFor="input-email-body">
+              Body <span className="opt">// optional</span>
             </label>
             <textarea
-              className="form-textarea"
+              id="input-email-body"
+              className="textarea"
               placeholder="Message body…"
               value={payload.email?.body || ''}
               onChange={(e) =>
-                update({ email: { ...payload.email!, to: payload.email?.to || '', subject: payload.email?.subject || '', body: e.target.value } })
+                update({
+                  email: {
+                    ...payload.email!,
+                    to: payload.email?.to || '',
+                    subject: payload.email?.subject || '',
+                    body: e.target.value,
+                  },
+                })
               }
-              id="input-email-body"
             />
           </div>
         </>
       )}
 
       {payload.type === 'phone' && (
-        <div className="form-group">
-          <label className="form-label" htmlFor="input-phone">
-            Phone number
-          </label>
+        <div className="field">
+          <label htmlFor="input-phone">Phone number</label>
           <input
-            className="form-input"
+            id="input-phone"
+            className="input"
             type="tel"
             inputMode="tel"
             autoComplete="tel"
             placeholder="+91 98765 43210"
             value={payload.phone || ''}
             onChange={(e) => update({ phone: e.target.value })}
-            id="input-phone"
           />
           {getError('phone') ? (
-            <div className="form-error">{getError('phone')}</div>
+            <div className="err">! {getError('phone')}</div>
           ) : (
             phone.digits && (
-              <div className="form-note ok">
+              <div className="readout-line ok">
                 <Check size={11} />
                 <span>
-                  Dials <strong>{formatPhone(phone.e164)}</strong>
-                  {!phone.hasPlus && ' — add + and your country code to dial internationally'}
+                  dials <code>{formatPhone(phone.e164)}</code>
+                  {!phone.hasPlus ? ' — add + and your country code to dial internationally' : ''}
                 </span>
               </div>
             )
@@ -212,35 +233,29 @@ export default function InputPanel({ payload, onChange, errors, onErrorsChange }
 
       {payload.type === 'sms' && (
         <>
-          <div className="form-group">
-            <label className="form-label" htmlFor="input-sms-number">
-              Recipient number
-            </label>
+          <div className="field">
+            <label htmlFor="input-sms-number">Recipient number</label>
             <input
-              className="form-input"
+              id="input-sms-number"
+              className="input"
               type="tel"
               inputMode="tel"
               placeholder="+91 98765 43210"
               value={payload.sms?.number || ''}
-              onChange={(e) =>
-                update({ sms: { number: e.target.value, message: payload.sms?.message || '' } })
-              }
-              id="input-sms-number"
+              onChange={(e) => update({ sms: { number: e.target.value, message: payload.sms?.message || '' } })}
             />
-            {getError('sms.number') && <div className="form-error">{getError('sms.number')}</div>}
+            {getError('sms.number') && <div className="err">! {getError('sms.number')}</div>}
           </div>
-          <div className="form-group">
-            <label className="form-label" htmlFor="input-sms-message">
-              Message <span className="form-optional">(optional)</span>
+          <div className="field">
+            <label htmlFor="input-sms-message">
+              Message <span className="opt">// optional</span>
             </label>
             <textarea
-              className="form-textarea"
+              id="input-sms-message"
+              className="textarea"
               placeholder="Pre-filled message…"
               value={payload.sms?.message || ''}
-              onChange={(e) =>
-                update({ sms: { number: payload.sms?.number || '', message: e.target.value } })
-              }
-              id="input-sms-message"
+              onChange={(e) => update({ sms: { number: payload.sms?.number || '', message: e.target.value } })}
             />
           </div>
         </>
@@ -248,58 +263,52 @@ export default function InputPanel({ payload, onChange, errors, onErrorsChange }
 
       {payload.type === 'wifi' && (
         <>
-          <div className="form-group">
-            <label className="form-label" htmlFor="input-ssid">
-              Network name (SSID)
-            </label>
+          <div className="field">
+            <label htmlFor="input-ssid">SSID</label>
             <input
-              className="form-input"
+              id="input-ssid"
+              className="input"
               placeholder="Campus WiFi"
               value={payload.wifi?.ssid || ''}
               onChange={(e) => update({ wifi: { ...payload.wifi!, ssid: e.target.value } })}
-              id="input-ssid"
             />
-            {getError('wifi.ssid') && <div className="form-error">{getError('wifi.ssid')}</div>}
+            {getError('wifi.ssid') && <div className="err">! {getError('wifi.ssid')}</div>}
           </div>
-          <div className="form-group">
-            <label className="form-label" htmlFor="input-password">
-              Password
-            </label>
+          <div className="field">
+            <label htmlFor="input-password">Passphrase</label>
             <input
-              className="form-input"
+              id="input-password"
+              className="input"
               type="password"
               placeholder="Network password"
               value={payload.wifi?.password || ''}
               onChange={(e) => update({ wifi: { ...payload.wifi!, password: e.target.value } })}
-              id="input-password"
             />
-            {getError('wifi.password') && <div className="form-error">{getError('wifi.password')}</div>}
+            {getError('wifi.password') && <div className="err">! {getError('wifi.password')}</div>}
           </div>
-          <div className="form-group">
-            <label className="form-label" htmlFor="input-encryption">
-              Security
-            </label>
+          <div className="field">
+            <label htmlFor="input-encryption">Security</label>
             <select
-              className="form-select"
+              id="input-encryption"
+              className="select"
               value={payload.wifi?.encryption || 'WPA'}
               onChange={(e) =>
                 update({ wifi: { ...payload.wifi!, encryption: e.target.value as 'WPA' | 'WEP' | 'nopass' } })
               }
-              id="input-encryption"
             >
               <option value="WPA">WPA / WPA2 / WPA3</option>
               <option value="WEP">WEP</option>
               <option value="nopass">None (open)</option>
             </select>
           </div>
-          <label className="form-checkbox">
+          <label className="check">
             <input
               type="checkbox"
               checked={payload.wifi?.hidden || false}
               onChange={(e) => update({ wifi: { ...payload.wifi!, hidden: e.target.checked } })}
               id="input-hidden"
             />
-            This network is hidden
+            hidden network
           </label>
         </>
       )}
