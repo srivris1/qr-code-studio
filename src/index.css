@@ -1,8 +1,8 @@
 /* ==========================================================================
    QR STUDIO — SCAN VERIFICATION BENCH
-   Design language: instrument panel. Near-black substrate, hairline rules,
-   monospace readouts, square geometry, signal-green telemetry. Every state
-   that matters is legible as text, not as decoration.
+   Design language: instrument panel. Cool near-black substrate, hairline rules,
+   monospace readouts, square geometry, low-chroma ion-blue telemetry. Every
+   state that matters is legible as text, not as decoration.
    ========================================================================== */
 
 *,
@@ -14,25 +14,25 @@
 }
 
 :root {
-  --void: #060908;
-  --panel: #0b0f0d;
-  --raised: #101614;
-  --inset: #070a09;
-  --line: rgba(0, 229, 132, 0.13);
-  --line-2: rgba(0, 229, 132, 0.28);
-  --line-3: rgba(0, 229, 132, 0.06);
+  --void: #07080d;
+  --panel: #0c0e15;
+  --raised: #11141d;
+  --inset: #08090f;
+  --line: rgba(141, 163, 255, 0.13);
+  --line-2: rgba(141, 163, 255, 0.28);
+  --line-3: rgba(141, 163, 255, 0.06);
 
-  --txt: #d6e7dd;
-  --txt-2: #8ba396;
-  --txt-3: #55665d;
+  --txt: #d5d9e6;
+  --txt-2: #868da3;
+  --txt-3: #6b7390;
 
-  --signal: #00e584;
-  --signal-dim: rgba(0, 229, 132, 0.12);
-  --signal-glow: rgba(0, 229, 132, 0.07);
-  --warn: #ffb020;
-  --warn-dim: rgba(255, 176, 32, 0.12);
-  --fail: #ff4d5e;
-  --fail-dim: rgba(255, 77, 94, 0.12);
+  --signal: #8da3ff;
+  --signal-dim: rgba(141, 163, 255, 0.12);
+  --signal-glow: rgba(141, 163, 255, 0.07);
+  --warn: #efb45f;
+  --warn-dim: rgba(239, 180, 95, 0.12);
+  --fail: #ff7d8f;
+  --fail-dim: rgba(255, 125, 143, 0.12);
 
   --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
   --sans: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
@@ -40,23 +40,23 @@
 }
 
 [data-theme='paper'] {
-  --void: #e9ebe7;
-  --panel: #f7f8f5;
+  --void: #e8e9ee;
+  --panel: #f7f8fa;
   --raised: #ffffff;
-  --inset: #eceee9;
-  --line: rgba(6, 40, 26, 0.14);
-  --line-2: rgba(6, 40, 26, 0.3);
-  --line-3: rgba(6, 40, 26, 0.07);
-  --txt: #0d1a13;
-  --txt-2: #46564d;
-  --txt-3: #7c8a82;
-  --signal: #00794a;
-  --signal-dim: rgba(0, 121, 74, 0.1);
-  --signal-glow: rgba(0, 121, 74, 0.06);
-  --warn: #a86400;
-  --warn-dim: rgba(168, 100, 0, 0.1);
-  --fail: #c22334;
-  --fail-dim: rgba(194, 35, 52, 0.1);
+  --inset: #ecedf2;
+  --line: rgba(30, 41, 82, 0.14);
+  --line-2: rgba(30, 41, 82, 0.3);
+  --line-3: rgba(30, 41, 82, 0.07);
+  --txt: #0e1322;
+  --txt-2: #454d68;
+  --txt-3: #6d7590;
+  --signal: #3b4fc4;
+  --signal-dim: rgba(59, 79, 196, 0.1);
+  --signal-glow: rgba(59, 79, 196, 0.06);
+  --warn: #8f5a10;
+  --warn-dim: rgba(143, 90, 16, 0.1);
+  --fail: #bb2f49;
+  --fail-dim: rgba(187, 47, 73, 0.1);
 }
 
 html {
@@ -92,6 +92,17 @@ body::before {
 #root {
   position: relative;
   z-index: 1;
+}
+
+/* A single low-alpha wash behind the header. Enough to read as a lit
+   instrument, not enough to tint the substrate. */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: radial-gradient(ellipse 90% 46% at 50% -12%, var(--signal-glow), transparent 70%);
 }
 
 ::selection {
@@ -505,7 +516,7 @@ body::before {
 .select {
   cursor: pointer;
   appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2355665d' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7390' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 10px center;
   padding-right: 28px;
